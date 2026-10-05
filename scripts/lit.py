@@ -20,6 +20,7 @@ import json
 import os
 import re
 import shutil
+import hashlib
 import html
 import subprocess
 import sys
@@ -285,6 +286,11 @@ def to_candidate(work):
         # read: the researcher's own reading. read_ai: the agent's extraction pass,
         # with the depth it was done at, so the agent does not redo it.
         "read_ai": "", "read_ai_depth": "",
+        # What that pass covered: the sections asked for and the PDF it read, so a
+        # later change to either queues the paper for extraction again.
+        "sections": "", "read_ai_sections": "", "read_ai_pdf": "",
+        # A local PDF (when it is not in Zotero) and the number printed on its first page.
+        "pdf": "", "first_page": "",
         # Set once harvest has seen a plugin-generated note for this paper.
         "plugin_seen": False,
         "themes": [], "citekey": "", "in_zotero": False, "zotero_key": "",
@@ -559,14 +565,58 @@ def note_status(c):
     return "read" if c["read"] == "done" else "unread"
 
 
-def ai_state(c):
-    """'done', 'todo', or 'redo' when the depth was raised after the agent's pass."""
+def _section_set(text):
+    return {t.strip().lower() for t in re.split(r"[,;]", text or "") if t.strip()}
+
+
+def find_pdf(ws, c, zotero=True):
+    """Path of a candidate's PDF, or None. A recorded local `pdf` wins over Zotero."""
+    if c.get("pdf"):
+        path = Path(c["pdf"]).expanduser()
+        if not path.is_absolute():
+            path = ws.parent / path
+        return path if path.exists() else None
+    if zotero and c.get("zotero_key") and shutil.which("zotero-cli"):
+        out = zcli("path", c["zotero_key"], fatal=False)
+        for m in re.findall(r"(/[^\n\"`]+?\.pdf)", json.dumps(out.get("data") or "", ensure_ascii=False)):
+            if Path(m).exists():
+                return Path(m)
+    return None
+
+
+def pdf_digest(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
+def ai_check(c, ws=None, zotero=False):
+    """(state, reason). State is 'done', 'todo', or 'redo' when the agent's pass no longer covers
+    what is asked for: the depth was raised, sections were added, or the PDF was replaced.
+
+    The PDF is compared only when `ws` is given; Zotero is asked only with `zotero=True`
+    (one call per paper, so listings leave it off and `lit show` turns it on).
+    """
     if c["read_ai"] != "done":
-        return "todo"
+        return "todo", ""
     if c["depth"] in DEPTHS and c["read_ai_depth"] in DEPTHS \
             and DEPTHS.index(c["depth"]) < DEPTHS.index(c["read_ai_depth"]):
-        return "redo"
-    return "done"
+        return "redo", f"depth raised from '{c['read_ai_depth']}' to '{c['depth']}'"
+    if c["read_ai_depth"] != "full":
+        added = _section_set(c.get("sections")) - _section_set(c.get("read_ai_sections"))
+        if added:
+            return "redo", "sections added since the extraction: " + ", ".join(sorted(added))
+    if ws is not None and c.get("read_ai_pdf"):
+        path = find_pdf(ws, c, zotero=zotero)
+        if path and pdf_digest(path) != c["read_ai_pdf"]:
+            return "redo", "the PDF was replaced since the extraction; its pages and lines may differ"
+    return "done", ""
+
+
+def ai_state(c, ws=None, zotero=False):
+    return ai_check(c, ws, zotero)[0]
 
 
 def write_links(ws, cands, notes):
@@ -609,7 +659,7 @@ def write_links(ws, cands, notes):
 
 def cmd_init(a):
     ws = Path(a.folder).resolve() / "lit"
-    for d in ("data", "notes", "concepts", "synthesis"):
+    for d in ("data", "notes", "concepts", "synthesis", "scrolly"):
         (ws / d).mkdir(parents=True, exist_ok=True)
     made = []
     for name in ("protocol.md", "matrix.md", "story.md", "phrasebank.md"):
@@ -858,10 +908,12 @@ def cmd_decide(a):
             c["reason"] = a.reason
         if a.depth:
             c["depth"] = a.depth
+        if a.sections is not None:
+            c["sections"] = a.sections.strip()
         if a.status == "include" and not c["read"]:
             c["read"] = "todo"
         print(f"{c['id']} -> {a.status}" + (f" ({c['depth']})" if c["depth"] else "")
-              + (" - depth raised since the agent's extraction; queued for extraction again"
+              + (f" - {ai_check(c)[1]}; queued for extraction again"
                  if a.status == "include" and ai_state(c) == "redo" else ""))
     save(ws, cands)
     for c in selected:
@@ -884,7 +936,7 @@ def cmd_set(a):
         if not sep:
             sys.exit(f"Expected key=value, got '{pair}'.")
         if k not in ("read", "read_ai", "citekey", "themes", "depth", "reason", "in_zotero", "zotero_key",
-                     "pdf", "first_page"):
+                     "pdf", "first_page", "sections"):
             sys.exit(f"Cannot set '{k}'.")
         if k == "themes":
             v = [t.strip() for t in v.split(",") if t.strip()]
@@ -917,7 +969,11 @@ def cmd_set(a):
         changed.add(k)
     if "read_ai" in changed:
         # Recorded after any depth change in the same command.
-        c["read_ai_depth"] = c["depth"] if c["read_ai"] == "done" else ""
+        done = c["read_ai"] == "done"
+        c["read_ai_depth"] = c["depth"] if done else ""
+        c["read_ai_sections"] = c["sections"] if done else ""
+        path = find_pdf(ws, c) if done else None
+        c["read_ai_pdf"] = pdf_digest(path) if path else ""
     if plugin and plugin.is_relative_to(ws / "collections"):
         # This note has already received the recorded status, so subsequent
         # plugin edits must win even before the first harvest.
@@ -935,16 +991,18 @@ def cmd_set(a):
             if plugin and plugin != note:
                 set_frontmatter(plugin, {"status": note_status(c)})
     print(f"{c['id']} updated: {', '.join(a.pairs)}")
-    if ai_state(c) == "redo":
-        print(f"Note: the agent's extraction was done at depth '{c['read_ai_depth']}'; "
-              f"depth is now '{c['depth']}', so it is queued for extraction again.")
+    state, why = ai_check(c, ws, zotero=True)
+    if state == "redo":
+        print(f"Note: {why}, so the paper is queued for extraction again.")
+    elif "read_ai" in changed and c["read_ai"] == "done" and not c["read_ai_pdf"]:
+        print("Note: no PDF could be located, so a later change of PDF cannot be detected for this paper.")
 
 
 def cmd_show(a):
     ws = find_workspace()
     c = dict(resolve(load(ws), a.ref))
     c["refs"] = f"{len(c.get('refs') or [])} references stored"
-    c["ai_extraction"] = ai_state(c)
+    c["ai_extraction"], c["ai_extraction_reason"] = ai_check(c, ws, zotero=True)
     note = note_for(ws, c)
     c["note"] = str(note) if note else ""
     print(json.dumps(c, indent=2, ensure_ascii=False))
@@ -1154,6 +1212,12 @@ def cmd_doctor(a):
             return e.code < 500 and e.code != 429
         except Exception:
             return False
+    print("Local tools")
+    zc = bool(shutil.which("zotero-cli"))
+    line(zc, "zotero-cli", "on the PATH" if zc else "not found - Zotero matching, push and PDF lookup will fail")
+    pt = bool(shutil.which("pdftotext"))
+    line(pt, "pdftotext (poppler)", "on the PATH" if pt
+         else "not found - `lit lines` cannot give line references: brew install poppler")
     print("Zotero")
     z = up("http://localhost:23119/connector/ping")
     line(z, "desktop app + local API", "reachable on localhost:23119" if z
@@ -1213,50 +1277,60 @@ def pdf_for(ws, ref):
             sys.exit(f"No such file: {path}")
         return path, None
     c = resolve(load(ws), ref)
+    path = find_pdf(ws, c)
+    if path:
+        return path, c
     if c.get("pdf"):
-        path = Path(c["pdf"]).expanduser()
-        if not path.is_absolute():
-            path = ws.parent / path
-        if path.exists():
-            return path, c
-        sys.exit(f"Recorded pdf for {c['id']} is missing: {path}")
-    if c.get("zotero_key"):
-        out = zcli("path", c["zotero_key"], fatal=False)
-        for m in re.findall(r"(/[^\n\"`]+?\.pdf)", json.dumps(out.get("data") or "", ensure_ascii=False)):
-            if Path(m).exists():
-                return Path(m), c
+        sys.exit(f"Recorded pdf for {c['id']} is missing: {c['pdf']}")
     sys.exit(f"No PDF found for {c['id']}. Attach one in Zotero, or record a local file with "
              f"`lit set {c['id']} pdf=<path>`.")
 
 
-def pdf_lines(pdf, first=None, last=None):
+def pdf_lines(pdf, first=None, last=None, margin=0.07):
     """Body lines of each PDF page with a column and a line number counted from the top of the column.
 
     Returns [{page, columns, lines: [{col, n, text}], other: [text]}]; col is 1 or 2, or 0 for a line
     spanning both columns of a two-column page. Running heads and feet go to `other`, unnumbered.
+
+    A line counts as a running head or foot only if it sits in the top or bottom `margin` of the
+    page AND either repeats there on another page (digits ignored, so page numbers do not hide the
+    repeat) or is a bare page number. Position alone is not enough: a document with small margins
+    has body text in that band. The whole file is read so repeats are seen even for one page.
     """
     if not shutil.which("pdftotext"):
         sys.exit("pdftotext (poppler) is needed for line numbers: brew install poppler")
-    cmd = ["pdftotext", "-bbox-layout"]
-    if first:
-        cmd += ["-f", str(first)]
-    if last:
-        cmd += ["-l", str(last)]
-    r = subprocess.run(cmd + [str(pdf), "-"], capture_output=True, text=True)
+    r = subprocess.run(["pdftotext", "-bbox-layout", str(pdf), "-"], capture_output=True, text=True)
     if r.returncode:
         sys.exit("pdftotext failed: " + r.stderr.strip()[:300])
-    pages = []
     num = lambda tag, k: float(re.search(k + r'="([\d.\-]+)"', tag).group(1))
-    for i, pm in enumerate(re.finditer(r"<page ([^>]*)>(.*?)</page>", r.stdout, flags=re.S)):
+    raw = []
+    for pm in re.finditer(r"<page ([^>]*)>(.*?)</page>", r.stdout, flags=re.S):
         width, height = num(pm.group(1), "width"), num(pm.group(1), "height")
-        body, other = [], []
+        found = []
         for lm in re.finditer(r"<line ([^>]*)>(.*?)</line>", pm.group(2), flags=re.S):
             text = " ".join(html.unescape(w) for w in re.findall(r"<word [^>]*>(.*?)</word>", lm.group(2), flags=re.S))
             if not text.strip():
                 continue
             ln = {"x0": num(lm.group(1), "xMin"), "x1": num(lm.group(1), "xMax"),
-                  "y0": num(lm.group(1), "yMin"), "y1": num(lm.group(1), "yMax"), "text": text}
-            (other if ln["y1"] < 0.07 * height or ln["y0"] > 0.93 * height else body).append(ln)
+                  "y0": num(lm.group(1), "yMin"), "y1": num(lm.group(1), "yMax"), "text": text, "zone": ""}
+            if margin and ln["y1"] < margin * height:
+                ln["zone"] = "top"
+            elif margin and ln["y0"] > (1 - margin) * height:
+                ln["zone"] = "bottom"
+            ln["key"] = (ln["zone"], re.sub(r"[^a-z#]", "", re.sub(r"\d+", "#", text.lower())))
+            found.append(ln)
+        raw.append((width, found))
+    seen = {}
+    for i, (_, found) in enumerate(raw):
+        for key in {l["key"] for l in found if l["zone"]}:
+            seen.setdefault(key, set()).add(i)
+    bare_number = re.compile(r"^[\s\divxlcIVXLC.e\-]{1,14}$")
+    pages = []
+    for i, (width, found) in enumerate(raw):
+        if (first and i + 1 < first) or (last and i + 1 > last):
+            continue
+        running = [l for l in found if l["zone"] and (len(seen[l["key"]]) >= 2 or bare_number.match(l["text"]))]
+        body = [l for l in found if l not in running]
         mid, tol = width / 2, 0.02 * width
         left = [l for l in body if l["x1"] <= mid + tol]
         right = [l for l in body if l["x0"] >= mid - tol]
@@ -1266,14 +1340,32 @@ def pdf_lines(pdf, first=None, last=None):
         for col, group in groups:
             for n, l in enumerate(sorted(group, key=lambda l: (l["y0"], l["x0"])), 1):
                 lines.append({"col": col, "n": n, "text": l["text"]})
-        pages.append({"page": (first or 1) + i, "columns": 2 if two else 1, "lines": lines,
-                      "other": [l["text"] for l in other]})
+        pages.append({"page": i + 1, "columns": 2 if two else 1, "lines": lines,
+                      "other": [l["text"] for l in running]})
     return pages
 
 
-def _squash(t):
-    t = t.replace("ﬁ", "fi").replace("ﬂ", "fl").replace("ﬀ", "ff").replace("ﬃ", "ffi").replace("ﬄ", "ffl")
-    return re.sub(r"[^a-z0-9]", "", t.lower())
+_LIGATURES = {"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl"}
+_TOKEN = re.compile(r"(?P<num>(?:(?<![\w)\]])-)?\d+(?:[.,]\d+)*)|(?P<word>[^\W\d_]+)")
+
+
+def _tokens(t):
+    for a, b in _LIGATURES.items():
+        t = t.replace(a, b)
+    t = t.replace("−", "-").replace("–", " ").replace("—", " ").lower()
+    return _TOKEN.finditer(t)
+
+
+def _strict(t):
+    """Letters run together (so line-end hyphenation and spacing do not matter); every number
+    kept whole, with its sign and decimals, between bars. '10 percent' is |10|percent and can
+    never match '-1.0 percent', which is |-1.0|percent."""
+    return "".join(f"|{m.group('num')}|" if m.group("num") else m.group("word") for m in _tokens(t))
+
+
+def _loose(t):
+    """Letters only. Used to point at a near miss, never to confirm a quote."""
+    return "".join(m.group("word") for m in _tokens(t) if m.group("word"))
 
 
 def cmd_lines(a):
@@ -1290,7 +1382,7 @@ def cmd_lines(a):
         offset = int(offset) if offset not in (None, "") else None
     except ValueError:
         sys.exit("first_page must be a number.")
-    pages = pdf_lines(pdf, first, last)
+    pages = pdf_lines(pdf, first, last, margin=a.margin)
 
     def where(pg, ln):
         label = f"p. {offset + pg['page'] - 1}" if offset is not None else f"PDF p. {pg['page']}"
@@ -1298,31 +1390,54 @@ def cmd_lines(a):
         return label, col
 
     if a.find:
-        seq, text = [], ""
-        for pg in pages:
-            for ln in sorted(pg["lines"], key=lambda l: (l["col"] == 0, l["col"], l["n"])):
-                sq = _squash(ln["text"])
-                seq.append((len(text), len(text) + len(sq), pg, ln))
-                text += sq
-        hit, start, found = _squash(a.find), 0, 0
-        if not hit:
-            sys.exit("--find needs some letters or digits.")
-        while (at := text.find(hit, start)) != -1:
-            span = [(pg, ln) for s0, s1, pg, ln in seq if s0 < at + len(hit) and s1 > at]
+        ordered = [(pg, ln) for pg in pages
+                   for ln in sorted(pg["lines"], key=lambda l: (l["col"] == 0, l["col"], l["n"]))]
+
+        def locate(norm):
+            needle = norm(a.find)
+            if not needle:
+                return []
+            seq, text = [], ""
+            for pg, ln in ordered:
+                piece = norm(ln["text"])
+                seq.append((len(text), len(text) + len(piece), pg, ln))
+                text += piece
+            spans, start = [], 0
+            while (at := text.find(needle, start)) != -1:
+                spans.append([(pg, ln) for s0, s1, pg, ln in seq if s0 < at + len(needle) and s1 > at])
+                start = at + len(needle)
+            return spans
+
+        def report(span, prefix):
             (pg0, l0), (pg1, l1) = span[0], span[-1]
             (lab0, col0), (lab1, col1) = where(pg0, l0), where(pg1, l1)
             if (lab0, col0) == (lab1, col1):
                 rng = f"l. {l0['n']}" if l0["n"] == l1["n"] else f"l. {l0['n']}-{l1['n']}"
-                print(f"({lab0}{col0}, {rng})")
+                print(f"{prefix}({lab0}{col0}, {rng})")
             else:
-                print(f"({lab0}{col0}, l. {l0['n']} to {lab1}{col1}, l. {l1['n']})")
+                print(f"{prefix}({lab0}{col0}, l. {l0['n']} to {lab1}{col1}, l. {l1['n']})")
             for pg, ln in span:
                 print(f"    {ln['text']}")
-            found += 1
-            start = at + len(hit)
-        if not found:
-            print("Not found. Check the wording against the PDF; text inside figures or scanned pages cannot be located.")
-        return
+
+        if not _strict(a.find):
+            sys.exit("--find needs some letters or digits.")
+        exact = locate(_strict)
+        for span in exact:
+            report(span, "")
+        if exact:
+            print("Verified: the words and every number (sign and decimals included) match these lines. "
+                  "Punctuation and capitals are not compared.")
+            return
+        near = locate(_loose) if len(_loose(a.find)) >= 12 else []
+        for span in near:
+            report(span, "APPROXIMATE ")
+        if near:
+            print("Not verified: only the letters match. A number, sign or decimal differs, or the PDF "
+                  "has a citation mark inside the passage. Read the lines above and correct the wording "
+                  "before quoting.")
+            sys.exit(2)
+        print("Not found. Check the wording against the PDF; text inside figures or scanned pages cannot be located.")
+        sys.exit(1)
     for pg in pages:
         label = f" | printed p. {offset + pg['page'] - 1}" if offset is not None else ""
         print(f"== PDF page {pg['page']}{label} | {pg['columns']} column{'s' if pg['columns'] > 1 else ''} ==")
@@ -1355,7 +1470,7 @@ def cmd_status(a):
             note_paths.add(path)
     print(f"Candidates: {len(cands)}  |  unscreened {n['new']}  include {n['include']}  "
           f"maybe {n['maybe']}  exclude {n['exclude']}")
-    ai_todo = [c for c in inc if ai_state(c) != "done"]
+    ai_todo = [c for c in inc if ai_state(c, ws) != "done"]
     print(f"Included: {len(inc)}  |  read by you {len(inc) - len(todo)}, still to read {len(todo)}  |  "
           f"extracted by the agent {len(inc) - len(ai_todo)}, still to extract {len(ai_todo)}  |  "
           f"paper notes in the vault: {len(note_paths)}")
@@ -1391,15 +1506,15 @@ def cmd_status(a):
             print(f"  {c['id']} found {hits(c)}x  {c['authors']} ({c['year']}) {c['title'][:70]}")
     order = {d: i for i, d in enumerate(DEPTHS)}
     if ai_todo:
-        print("\nAgent extraction queue (no agent notes yet, or depth raised since):")
+        print("\nAgent extraction queue (no agent notes yet, or out of date):")
         for c in sorted(ai_todo, key=lambda c: order.get(c["depth"], 9))[:10]:
-            print(f"  {c['id']} @{c['citekey']} [{c['depth']}]{' REDO' if ai_state(c) == 'redo' else ''} "
+            print(f"  {c['id']} @{c['citekey']} [{c['depth']}]{' REDO: ' + ai_check(c, ws)[1] if ai_state(c, ws) == 'redo' else ''} "
                   f"{c['authors']} ({c['year']}) {c['title'][:60]}")
     if todo:
         print("\nYour reading queue:")
         for c in sorted(todo, key=lambda c: order.get(c["depth"], 9))[:10]:
             print(f"  {c['id']} @{c['citekey']} [{c['depth']}] "
-                  f"[{ {'done': 'agent notes ready', 'redo': 'agent notes at a lower depth'}.get(ai_state(c), 'no agent notes yet') }] "
+                  f"[{ {'done': 'agent notes ready', 'redo': 'agent notes out of date'}.get(ai_state(c, ws), 'no agent notes yet') }] "
                   f"{c['authors']} ({c['year']}) {c['title'][:60]}")
 
 
@@ -1498,11 +1613,12 @@ def main():
     s.add_argument("status", choices=STATUSES)
     s.add_argument("refs", nargs="+")
     s.add_argument("--depth", choices=DEPTHS)
+    s.add_argument("--sections", help="for depth 'sections': which ones, comma separated, e.g. \"methods, limitations\"")
     s.add_argument("--reason")
     s.set_defaults(fn=cmd_decide)
 
     s = sub.add_parser("set", help="set read_ai=done (agent's extraction), read=done (researcher's "
-                                   "own reading), themes=a,b, depth=..., citekey=...")
+                                   "own reading), themes=a,b, depth=..., sections=..., citekey=..., pdf=<path>, first_page=<n>")
     s.add_argument("ref")
     s.add_argument("pairs", nargs="+")
     s.set_defaults(fn=cmd_set)
@@ -1530,6 +1646,9 @@ def main():
     s.add_argument("--pages", help="PDF pages to print or search, e.g. 8 or 8-9 (default: all)")
     s.add_argument("--find", help="locate this wording and print its page, column and line")
     s.add_argument("--first-page", type=int, help="number printed on the PDF's first page")
+    s.add_argument("--margin", type=float, default=0.07,
+                   help="share of the page height, top and bottom, searched for running heads and feet "
+                        "(default 0.07; 0 numbers every line)")
     s.set_defaults(fn=cmd_lines)
 
     s = sub.add_parser("status", help="counts, yield per round, reading queue")

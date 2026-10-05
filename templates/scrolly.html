@@ -3,369 +3,684 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Agius 2025 Triage CTA</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = { theme: { extend: {
-  colors: { bg:'var(--bg)', surface:'var(--surface)', ink:'var(--ink)', muted:'var(--muted)', line:'var(--line)', accent:'var(--accent)', soft:'var(--accent-soft)', ok:'var(--ok)', warn:'var(--warn)', bad:'var(--bad)' },
-  fontFamily: { display:['"Schibsted Grotesk"','Helvetica Neue','Arial','sans-serif'], sans:['"IBM Plex Sans"','Helvetica Neue','Arial','sans-serif'], mono:['"IBM Plex Mono"','ui-monospace','Menlo','monospace'] }
-} } };
-</script>
+<title>Reading companion</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: sidecar scrollytelling. Eight story sections scroll in one column; a sticky stage redraws for the section in view. */
+/* Layout: a reading column on paper, and one dark "figure plate" that stays pinned while the story scrolls.
+   The plate is the only loud element: it keeps its dark palette in both themes so the motion graphics read like a projected figure. */
 :root{
-  --bg:#f2f6f6; --surface:#ffffff; --ink:#12262b; --muted:#536a6f; --line:#d2dcdd;
-  --accent:#b9520b; --accent-soft:#fbe8d6; --ok:#1b7566; --warn:#9a6708; --bad:#b3261e;
-  --esi1:#c62828; --esi2:#e0701a; --esi3:#c99a00; --esi4:#2e8b57; --esi5:#2f6fb5;
+  --bg:#eef2f1; --surface:#ffffff; --ink:#10201f; --muted:#566b69; --line:#d2dcda; --accent:#b4500a; --accent-soft:#fbe6d3;
+  --p-bg:#0b1a1d; --p-2:#12292d; --p-line:#24434a; --p-ink:#e9f2f0; --p-muted:#8eaaa8;
+  --p-accent:#ffa24d; --p-ok:#5fd0b8; --p-warn:#f2c14e; --p-bad:#ff7b6b;
+  --esi1:#ff5f56; --esi2:#ffa24d; --esi3:#f2c14e; --esi4:#5ccf8f; --esi5:#6fb1ff;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Newsreader",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0d1618; --surface:#152225; --ink:#e3eded; --muted:#9bb1b4; --line:#2a3c40;
-    --accent:#f0934a; --accent-soft:#38230f; --ok:#5cc4b0; --warn:#e0b25a; --bad:#f2837a;
-    --esi1:#ef5350; --esi2:#f0934a; --esi3:#e3c04a; --esi4:#5bbf8a; --esi5:#6aa6e8;
-    color-scheme:dark;
-  }
+  :root:not([data-theme="light"]){ --bg:#081214; --surface:#0f1f22; --ink:#e6efed; --muted:#96adab; --line:#223a3f; --accent:#ffa24d; --accent-soft:#33210f; --p-bg:#0e2226; --p-2:#16343a; color-scheme:dark }
 }
-:root[data-theme="dark"]{
-  --bg:#0d1618; --surface:#152225; --ink:#e3eded; --muted:#9bb1b4; --line:#2a3c40;
-  --accent:#f0934a; --accent-soft:#38230f; --ok:#5cc4b0; --warn:#e0b25a; --bad:#f2837a;
-  --esi1:#ef5350; --esi2:#f0934a; --esi3:#e3c04a; --esi4:#5bbf8a; --esi5:#6aa6e8;
-  color-scheme:dark;
+:root[data-theme="dark"]{ --bg:#081214; --surface:#0f1f22; --ink:#e6efed; --muted:#96adab; --line:#223a3f; --accent:#ffa24d; --accent-soft:#33210f; --p-bg:#0e2226; --p-2:#16343a; color-scheme:dark }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:19px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.015em;line-height:1.08}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+.wrap{max-width:1180px;margin-inline:auto;padding-inline:clamp(16px,4vw,44px)}
+.mono{font-family:var(--mono);font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:99px;vertical-align:middle;white-space:nowrap}
+.ref{font-family:var(--mono);font-size:.66rem;line-height:1.5;color:var(--muted);background:none;border:1px solid var(--line);border-radius:5px;padding:1px 6px;cursor:copy;vertical-align:middle;text-align:left}
+.ref:hover{color:var(--accent);border-color:var(--accent)}
+#progress{position:fixed;inset:0 0 auto 0;height:calc(3px + env(safe-area-inset-top,0px));z-index:40;pointer-events:none}
+#progress i{display:block;height:100%;width:100%;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:.72rem;padding:8px 14px;border-radius:99px;opacity:0;transition:opacity .25s,transform .25s;z-index:50;pointer-events:none;max-width:90vw}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* hero */
+.hero{padding-block:clamp(48px,9vw,112px) clamp(32px,5vw,64px);display:flex;flex-direction:column;gap:26px}
+.hero h1{font-size:clamp(2.1rem,5.4vw,4.1rem);font-weight:800;max-width:19ch}
+.hero .by{color:var(--muted);font-size:1rem}
+.hero .sum{font-size:clamp(1.15rem,1.9vw,1.42rem);line-height:1.45;max-width:36em}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:0;border-top:2px solid var(--ink)}
+.facts div{padding:16px 16px 14px 0;border-bottom:1px solid var(--line)}
+.facts dt{font-family:var(--display);font-weight:800;font-size:clamp(2rem,4vw,2.9rem);line-height:1;font-variant-numeric:tabular-nums}
+.facts dd{margin:6px 0 0;font-size:.9rem;line-height:1.3;color:var(--muted)}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px 28px;font-size:.92rem;line-height:1.4;color:var(--muted)}
+.howto b{display:block;font-family:var(--mono);font-size:.64rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);font-weight:500;margin-bottom:3px}
+
+/* story */
+.scrolly{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4.5vw,72px);align-items:start}
+.steps{min-width:0}
+.step{min-height:150vh;display:flex;align-items:center}
+.step:last-child{min-height:110vh}
+.step-in{display:flex;flex-direction:column;gap:18px;max-width:31em;opacity:.28;transform:translateY(10px);transition:opacity .5s,transform .6s cubic-bezier(.2,.7,.2,1)}
+.step.on .step-in{opacity:1;transform:none}
+.kick{display:flex;align-items:baseline;gap:10px}
+.kick b{font-family:var(--display);font-weight:800;font-size:1.05rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.step h2{font-size:clamp(1.7rem,3.1vw,2.6rem);font-weight:700}
+.step blockquote{margin:0;padding:2px 0 2px 18px;border-left:3px solid var(--accent);font-style:italic;font-size:1.12em;line-height:1.42}
+.step blockquote .ref{font-style:normal}
+.stage{position:sticky;top:0;height:100vh;display:flex;align-items:center;min-width:0;order:2}
+.plate{width:100%;background:var(--p-bg);border:1px solid var(--p-line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 60px -40px rgba(8,18,20,.7)}
+.plate-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 18px 0;font-family:var(--mono);font-size:.64rem;letter-spacing:.09em;text-transform:uppercase;color:var(--p-muted)}
+.plate-head .kind{border:1px solid var(--p-line);border-radius:99px;padding:2px 9px}
+.plate-head .kind.schematic{color:var(--p-warn);border-color:var(--p-warn)}
+.plate-body{position:relative;aspect-ratio:4/3;max-height:calc(100vh - 190px)}
+.layer{position:absolute;inset:0;padding:4px 10px;opacity:0;transition:opacity .45s;pointer-events:none}
+.layer.on{opacity:1}
+.layer svg{width:100%;height:100%;display:block;overflow:visible}
+.plate-foot{padding:0 18px 14px;display:flex;flex-direction:column;gap:10px}
+.plate-cap{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;font-family:var(--display);font-weight:500;font-size:.86rem;line-height:1.35;color:var(--p-ink);min-height:2.7em}
+.plate-cap button{flex:none;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--p-muted);background:none;border:1px solid var(--p-line);border-radius:99px;padding:4px 11px;cursor:pointer}
+.plate-cap button:hover{color:var(--p-accent);border-color:var(--p-accent)}
+.plate-bar{height:2px;background:var(--p-line);border-radius:2px;overflow:hidden}
+.plate-bar i{display:block;height:100%;background:var(--p-accent);transform-origin:0 50%}
+.rail{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:9px;z-index:30}
+.rail a{display:block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--muted);transition:all .3s}
+.rail a.on{background:var(--accent);border-color:var(--accent);transform:scale(1.35)}
+
+/* figure marks (inside the plate) */
+svg text{font-family:var(--display);font-weight:500;font-size:15px;fill:var(--p-ink)}
+svg .s{font-size:13.5px} svg .xs{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:400}
+svg .h{font-weight:700;font-size:19px} svg .num{font-weight:800;font-size:40px} svg .big{font-weight:800;font-size:76px;letter-spacing:-.03em}
+svg .mu{fill:var(--p-muted)} svg .acc{fill:var(--p-accent)} svg .ok{fill:var(--p-ok)} svg .warn{fill:var(--p-warn)} svg .bad{fill:var(--p-bad)} svg .dark{fill:var(--p-bg)}
+.f-ink{fill:var(--p-ink)} .f-mu{fill:var(--p-muted)} .f-line{fill:var(--p-line)} .f-2{fill:var(--p-2)} .f-acc{fill:var(--p-accent)} .f-ok{fill:var(--p-ok)} .f-warn{fill:var(--p-warn)} .f-bad{fill:var(--p-bad)} .f-none{fill:none}
+.st-ink{stroke:var(--p-ink)} .st-mu{stroke:var(--p-muted)} .st-line{stroke:var(--p-line)} .st-acc{stroke:var(--p-accent)} .st-ok{stroke:var(--p-ok)} .st-warn{stroke:var(--p-warn)} .st-bad{stroke:var(--p-bad)}
+.esi1{fill:var(--esi1)} .esi2{fill:var(--esi2)} .esi3{fill:var(--esi3)} .esi4{fill:var(--esi4)} .esi5{fill:var(--esi5)}
+@keyframes ring{0%{r:7;opacity:.9}100%{r:22;opacity:0}}
+.ring{animation:ring 1.7s ease-out infinite}
+
+/* after the story */
+.after{display:flex;flex-direction:column;gap:clamp(64px,9vw,120px);padding-block:clamp(48px,8vw,96px) 120px}
+.after section{display:flex;flex-direction:column;gap:22px}
+.after h2{font-size:clamp(1.7rem,3.2vw,2.5rem);font-weight:700}
+.after h3{font-size:1.05rem;font-weight:700}
+.lede{max-width:36em}
+.explorer{display:grid;grid-template-columns:minmax(0,290px) minmax(0,1fr);gap:26px;align-items:start}
+.tabs{display:flex;flex-direction:column;gap:5px}
+.tabs button{font-family:var(--display);font-weight:500;font-size:.9rem;line-height:1.25;text-align:left;color:var(--ink);background:none;border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer}
+.tabs button:hover{border-color:var(--accent)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:clamp(18px,3vw,30px);display:flex;flex-direction:column;gap:18px;min-width:0}
+.card-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px}
+.card dl{margin:0;display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px 18px;font-size:1rem;line-height:1.45}
+.card dt{font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:6px}
+.card dd{margin:0}
+.card dd.em{border-left:3px solid var(--accent);padding-left:12px;font-family:var(--display);font-weight:700;font-size:1.05rem}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px}
+.two>div{display:flex;flex-direction:column;gap:14px;min-width:0}
+.list{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:11px;font-size:1rem;line-height:1.45}
+.scroll-x{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:1rem;line-height:1.45}
+th{font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:0 16px 10px 0;border-bottom:2px solid var(--ink)}
+td{padding:14px 16px 14px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.read-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px}
+.meter{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.todo{border-top:2px solid var(--ink)}
+.todo label{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.todo input{width:19px;height:19px;margin-top:5px;accent-color:var(--accent)}
+.todo b{font-family:var(--display);font-weight:700}
+.todo .why{display:block;font-size:.92rem;color:var(--muted);line-height:1.35}
+.todo .done b{text-decoration:line-through;text-decoration-color:var(--muted)}
+.foot{font-size:.85rem;color:var(--muted)}
+
+@media (max-width:920px){
+  body{font-size:17.5px}
+  .scrolly{grid-template-columns:minmax(0,1fr);gap:0}
+  .stage{order:-1;height:auto;top:env(safe-area-inset-top,0px);z-index:20;margin-inline:calc(-1 * clamp(16px,4vw,44px));display:block}
+  .plate{border-radius:0;border-inline:0;box-shadow:0 14px 24px -18px rgba(8,18,20,.8)}
+  .plate-body{max-height:36vh;aspect-ratio:auto;height:36vh}
+  .plate-head{padding:8px 14px 0}
+  .plate-foot{padding:0 14px 8px;gap:6px}
+  .plate-cap{font-size:.74rem;min-height:0}
+  .plate-cap span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .step{min-height:92vh;align-items:flex-start;padding-block:7vh 26vh}
+  .step:last-child{min-height:70vh}
+  .rail{display:none}
+  .explorer{grid-template-columns:minmax(0,1fr)}
+  .tabs{flex-direction:row;flex-wrap:wrap}
+  .tabs button{font-size:.8rem;padding:6px 10px}
+  .card dl{grid-template-columns:minmax(0,1fr);gap:2px}
+  .card dd{margin-bottom:12px}
 }
-body{background:var(--bg);color:var(--ink);margin:0}
-h1,h2,h3{text-wrap:balance}
-svg text{font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif}
-svg .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
-svg .disp{font-family:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif}
-@keyframes pulse{0%{r:9;opacity:.9}100%{r:22;opacity:0}}
-.pulse{animation:pulse 1.6s ease-out infinite}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<div id="root"><p style="padding:24px;font-family:sans-serif">Loading. This page needs an internet connection the first time, for its scripts and fonts.</p></div>
+<div id="progress" aria-hidden="true"><i></i></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="root"><p style="padding:24px;font-family:sans-serif">Loading. This page needs an internet connection for its scripts and fonts.</p></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
-/* ============ DATA: everything below comes from the paper; page numbers are the journal's ============ */
+/* =====================================================================================================
+   1. PAPER DATA. Everything about the paper lives in this block and in section 2. Nothing below
+      section 2 mentions a paper. References are copied from the paper's note: page, column, line.
+   ===================================================================================================== */
 const PAPER = {
+  key: 'agius2025',                         // unique per paper: names the saved reading ticks
+  short: 'Agius 2025 Triage CTA',           // browser tab
+  cite: 'Agius et al. 2025',                // prefixed when a reference is copied
   title: 'A Cognitive Task Analysis for Developing a Clinical Decision Support System for Emergency Triage',
   authors: 'Steve Agius, Caroline Magri and Vincent Cassar, University of Malta',
   venue: 'Journal of Emergency Nursing 51(6), 2025, pp. 1028–1045',
-  doi: '10.1016/j.jen.2025.05.013'
+  doi: '10.1016/j.jen.2025.05.013',
+  access: 'open access',
+  summary: 'The authors interviewed and watched emergency triage nurses in one Maltese hospital to learn how they decide under time pressure. They turned what they found into a table of ten cognitive demands, each paired with an idea for a decision support feature. They did not build or test a system.',
+  facts: [['16','nurse interviews'],['6 h','of observation, 55 triage sessions'],['26','themes coded'],['10','cognitive demands in the final table'],['0','systems built or evaluated']],
+  refExample: 'p. 1035, col. 2, l. 42-44'
 };
 const DATA = {
-  admissions: { low: 4, high: 17, page: 'p. 1029' },
-  interviews: { n: 16, education: [ {k:'Bachelor’s', n:9, c:'var(--accent)'}, {k:'Master’s', n:6, c:'var(--ok)'}, {k:'PhD', n:1, c:'var(--ink)'} ], page: 'p. 1030' },
-  observation: { sessions: 4, hoursEach: 1.5, patients: 55, page: 'p. 1030' },
+  admissions: { low: 4, high: 17 },
+  interviews: { n: 16, education: [ {k:'Bachelor’s', n:9, c:'f-acc'}, {k:'Master’s', n:6, c:'f-ok'}, {k:'PhD', n:1, c:'f-ink'} ] },
+  observation: { sessions: 4, hoursEach: 1.5, patients: 55 },
+  saturation: { at: 13, of: 16 },
   themes: {
     interview: ['Procedures','Patient flow management','Assigning patients to specialties','Specific triage protocols','Data collection for assessment','Skills employed in triage','Communication with professionals','Responding to patient deterioration','Observation cues and patterns','Experience in triage','Challenges in triage','Time constraint','Triage during peak hours','Uncertainty and incomplete information','Deviations from standard process','Verification of triage decisions'],
-    observation: ['Adaptability and flexibility','Efficiency and time management','Challenges and potential risks','Distractions and environment','Communication styles, language barriers','Efficiency vs. detachment','Patient experience and privacy','Nurses’ nationality','Long shifts','Nursing approach'],
-    page: 'p. 1036'
+    observation: ['Adaptability and flexibility','Efficiency and time management','Challenges and potential risks','Distractions and environment','Communication styles, language barriers','Efficiency vs. detachment','Patient experience and privacy','Nurses’ nationality','Long shifts','Nursing approach']
   },
-  queue: { n: 12, acute: [4, 8, 10] }, /* schematic only: the paper gives no queue data */
-  esi: [ {l:'ESI 1', c:'var(--esi1)'}, {l:'ESI 2', c:'var(--esi2)'}, {l:'ESI 3', c:'var(--esi3)'}, {l:'ESI 4', c:'var(--esi4)'}, {l:'ESI 5', c:'var(--esi5)'} ],
-  matrix: [
-    ['Patient flow management','c'], ['Specific triage protocols','e'], ['Data collection for assessment','c'],
-    ['Observation cues and patterns','c'], ['Communication with health care professionals','e'], ['Responding to patient deterioration','c'],
-    ['Experience in triage','c'], ['Time constraint','e'], ['Triage during peak hours','c'],
-    ['Uncertainty, incomplete information, communication barrier','c'], ['Deviations from standard triage process','c'], ['Verification of triage decisions','d']
-  ],
-  rel: { c:{l:'Confirmed', c:'var(--ok)'}, e:{l:'Expanded', c:'var(--warn)'}, d:{l:'Diverged', c:'var(--bad)'} },
+  queue: { n: 12, acute: [4, 8, 10] },      // schematic only: the paper gives no queue data
+  esi: ['ESI 1','ESI 2','ESI 3','ESI 4','ESI 5'],
+  matrix: [ ['Patient flow management','c'], ['Specific triage protocols','e'], ['Data collection for assessment','c'], ['Observation cues and patterns','c'], ['Communication with health care professionals','e'], ['Responding to patient deterioration','c'], ['Experience in triage','c'], ['Time constraint','e'], ['Triage during peak hours','c'], ['Uncertainty, incomplete information, communication barrier','c'], ['Deviations from standard triage process','c'], ['Verification of triage decisions','d'] ],
+  rel: { c:{l:'confirmed', k:'ok'}, e:{l:'expanded', k:'warn'}, d:{l:'diverged', k:'bad'} },
   pipeline: [ {l:'Elicit', done:true}, {l:'Analyse', done:true}, {l:'Design ideas', done:true}, {l:'Build', done:false}, {l:'Evaluate', done:false} ],
   cdt: [
-   {s:'Patient assessment', i:'Priority suggestion', n:'Patient assessment in triage',p:'p. 1031',why:'Balancing efficiency with accuracy in a very limited time window.',cue:'Extended waiting times for patients in the department.',str:'Prioritize cases based on severity.',err:'Rushed assessments, overlooked details, misclassified severity, inconsistent use of the protocol, delayed response to critical cases.',idea:'An automated priority suggestion system.'},
-   {s:'Peak hours', i:'Flow dashboard, predictive analytics', n:'Assessment during peak hours',p:'p. 1031',why:'The influx of patients at peak hours.',cue:'The time-sensitive nature of emergency care.',str:'Allocate resources based on anticipated patient volume.',err:'Inefficient allocation of resources, leading to bottlenecks.',idea:'Predictive analytics to anticipate peak hours, a resource allocation algorithm, and a real-time patient flow dashboard.'},
-   {s:'Data collection', i:'Voice-to-text entry', n:'Data collection for assessment',p:'p. 1031',why:'Gathering the pertinent information promptly enough to inform critical decisions.',cue:'The limited time window for a triage assessment.',str:'A structured template for quick data collection.',err:'Incomplete or insufficient data because of time constraints.',idea:'Voice-to-text for rapid verbal data entry.'},
-   {s:'Cues and patterns', i:'AI pattern recognition', n:'Observation cues and patterns',p:'p. 1032',why:'Interpreting subtle cues rapidly and modifying triage levels accordingly.',cue:'Nonverbal cues: body language, facial expressions, vital signs.',str:'Ongoing training in pattern recognition and triage modification.',err:'Misreading subtle cues, inconsistent changes to triage level, difficulty applying pattern recognition consistently in fast-paced situations.',idea:'An AI component for pattern recognition and decision support, with an algorithm for automated analysis of nonverbal cues.'},
-   {s:'Uncertainty, language', i:'Real-time translation', n:'Uncertainty, incomplete information and communication barriers',p:'p. 1032',why:'Finding ways around communication barriers, such as interpreters or mobile translation tools.',cue:'Language differences, cultural barriers, hearing impairments.',str:'A system to document language barriers.',err:'Overlooking or misinterpreting critical information, misunderstandings, decision errors from incomplete information.',idea:'A real-time translation tool inside the system.'},
-   {s:'Deviations', i:'Deviation training modules', n:'Deviations from triage',p:'p. 1032',why:'Balancing the need to deviate with adherence to evidence-based protocols.',cue:'The tension between deviation and adherence itself.',str:'Collaboration among triage nurses to reach consensus on deviations.',err:'Inconsistent decisions about how far to deviate, and drift away from established protocols.',idea:'Training modules on deviation management.'},
-   {s:'Coordination', i:'Real-time updates, not pagers', n:'Coordination with other health care professionals',p:'p. 1033',why:'Coordinating with diverse professionals.',cue:'The dynamic, fast-paced triage environment.',str:'A standardized communication protocol for emergencies.',err:'Miscommunication, delayed information exchange, suboptimal care and delayed responses.',idea:'A communication tool for real-time updates, replacing the basic pager system.'},
-   {s:'Verification', i:'Questioning module', n:'Verification of triage decisions',p:'p. 1033',why:'Questioning decisions in complex situations or when uncertainty arises.',cue:'Uncertainty in complex situations.',str:'A culture of open communication for questioning.',err:'Reluctance to question decisions, no structured approach to uncertainty, overlooking critical aspects.',idea:'A questioning module for self-assessment.'},
-   {s:'Seeking advice', i:'External-opinion features', n:'Seeking advice during triage',p:'p. 1033',why:'Seeking opinions from lead nurses, colleagues and lead doctors.',cue:'Recognizing that an outside opinion is needed.',str:'Regular collaboration and feedback sessions.',err:'Overreliance on outside opinions that delays decisions, no established channels, inconsistent collaboration.',idea:'Decision support features for seeking external opinions.'},
-   {s:'Long shifts', i:'Fatigue monitoring, nudges', n:'Long shifts',p:'p. 1033',why:'Extended shifts affect empathetic response.',cue:'Fatigue, stress and burnout.',str:'Rest breaks and stress management programs.',err:'Reduced patience and attentiveness.',idea:'Nudges and fatigue monitoring, such as wearables that track activity and prompt breaks.'}
+   {s:'Patient assessment', i:'Priority suggestion', n:'Patient assessment in triage',p:'p. 1031, table',why:'Balancing efficiency with accuracy in a very limited time window.',cue:'Extended waiting times for patients in the department.',str:'Prioritize cases based on severity.',err:'Rushed assessments, overlooked details, misclassified severity, inconsistent use of the protocol, delayed response to critical cases.',idea:'An automated priority suggestion system.'},
+   {s:'Peak hours', i:'Flow dashboard, predictive analytics', n:'Assessment during peak hours',p:'p. 1031, table',why:'The influx of patients at peak hours.',cue:'The time-sensitive nature of emergency care.',str:'Allocate resources based on anticipated patient volume.',err:'Inefficient allocation of resources, leading to bottlenecks.',idea:'Predictive analytics to anticipate peak hours, a resource allocation algorithm, and a real-time patient flow dashboard.'},
+   {s:'Data collection', i:'Voice-to-text entry', n:'Data collection for assessment',p:'p. 1031, table',why:'Gathering the pertinent information promptly enough to inform critical decisions.',cue:'The limited time window for a triage assessment.',str:'A structured template for quick data collection.',err:'Incomplete or insufficient data because of time constraints.',idea:'Voice-to-text for rapid verbal data entry.'},
+   {s:'Cues and patterns', i:'AI pattern recognition', n:'Observation cues and patterns',p:'p. 1032, table',why:'Interpreting subtle cues rapidly and modifying triage levels accordingly.',cue:'Nonverbal cues: body language, facial expressions, vital signs.',str:'Ongoing training in pattern recognition and triage modification.',err:'Misreading subtle cues, inconsistent changes to triage level, difficulty applying pattern recognition consistently in fast-paced situations.',idea:'An AI component for pattern recognition and decision support, with an algorithm for automated analysis of nonverbal cues.'},
+   {s:'Uncertainty, language', i:'Real-time translation', n:'Uncertainty, incomplete information and communication barriers',p:'p. 1032, table',why:'Finding ways around communication barriers, such as interpreters or mobile translation tools.',cue:'Language differences, cultural barriers, hearing impairments.',str:'A system to document language barriers.',err:'Overlooking or misinterpreting critical information, misunderstandings, decision errors from incomplete information.',idea:'A real-time translation tool inside the system.'},
+   {s:'Deviations', i:'Deviation training modules', n:'Deviations from triage',p:'p. 1032, table',why:'Balancing the need to deviate with adherence to evidence-based protocols.',cue:'The tension between deviation and adherence itself.',str:'Collaboration among triage nurses to reach consensus on deviations.',err:'Inconsistent decisions about how far to deviate, and drift away from established protocols.',idea:'Training modules on deviation management.'},
+   {s:'Coordination', i:'Real-time updates, not pagers', n:'Coordination with other health care professionals',p:'p. 1033, table',why:'Coordinating with diverse professionals.',cue:'The dynamic, fast-paced triage environment.',str:'A standardized communication protocol for emergencies.',err:'Miscommunication, delayed information exchange, suboptimal care and delayed responses.',idea:'A communication tool for real-time updates, replacing the basic pager system.'},
+   {s:'Verification', i:'Questioning module', n:'Verification of triage decisions',p:'p. 1033, table',why:'Questioning decisions in complex situations or when uncertainty arises.',cue:'Uncertainty in complex situations.',str:'A culture of open communication for questioning.',err:'Reluctance to question decisions, no structured approach to uncertainty, overlooking critical aspects.',idea:'A questioning module for self-assessment.'},
+   {s:'Seeking advice', i:'External-opinion features', n:'Seeking advice during triage',p:'p. 1033, table',why:'Seeking opinions from lead nurses, colleagues and lead doctors.',cue:'Recognizing that an outside opinion is needed.',str:'Regular collaboration and feedback sessions.',err:'Overreliance on outside opinions that delays decisions, no established channels, inconsistent collaboration.',idea:'Decision support features for seeking external opinions.'},
+   {s:'Long shifts', i:'Fatigue monitoring, nudges', n:'Long shifts',p:'p. 1033, table',why:'Extended shifts affect empathetic response.',cue:'Fatigue, stress and burnout.',str:'Rest breaks and stress management programs.',err:'Reduced patience and attentiveness.',idea:'Nudges and fatigue monitoring, such as wearables that track activity and prompt breaks.'}
   ]
 };
-/* Story sections. Body items: {t: text, p: page, q: true for a copied quote, tag: label} */
+/* The story: 5 to 8 sections. `viz` names a visual in section 2; leave it out and the plate shows a title card.
+   Body items: {t: text, p: reference, q: true for a copied quote, tag: label for AI analysis}. */
 const SECTIONS = [
-  { id:'problem', kicker:'The problem', title:'Triage is where a hospital decides fastest', body:[
-    {t:'Triage nurses make rapid, often autonomous decisions about who is seen first. They draw on intuition, clinical experience and pattern recognition.', p:'p. 1029'},
-    {t:'The paper cites a chart review in which 4% to 17% of hospital admissions involve an adverse medical event, nearly two-thirds of them preventable. Error rates in emergency departments are estimated to be 10% to 15% higher than in other hospital settings.', p:'p. 1029'} ]},
-  { id:'idea', kicker:'The idea', title:'Build the support around how nurses think', body:[
-    {q:true, t:'“Despite their importance, cognitive processes are rarely considered in the design of CDSS, and there is limited guidance in the health care literature on how to explore them.”', p:'p. 1029'},
-    {t:'So the authors ran a cognitive task analysis at Mater Dei Hospital in Malta. They interviewed 16 triage nurses, then spent 6 hours watching 55 triage sessions handled by other nurses.', p:'p. 1030, 1034'},
-    {t:'Interview questions were open-ended and scenario-based, with probes such as “What made you choose that action?”', p:'p. 1034'} ]},
-  { id:'themes', kicker:'The analysis', title:'Twenty-six themes', body:[
-    {t:'Transcripts and field notes were coded in NVivo following Braun and Clarke, then sorted into CTA categories such as prioritization, uncertainty management and verification.', p:'p. 1035'},
-    {t:'A second researcher reviewed the coding. No new codes appeared after the 13th of the 16 interviews.', p:'p. 1034'} ]},
-  { id:'queue', kicker:'Finding 1', title:'The list is a suggestion', body:[
-    {t:'Patients are listed by registration time. Nurses normally follow the list, but they scan it for acute cases and take those first.', p:'p. 1035'},
-    {q:true, t:'“When there’s a long list of triage, for example, more than 10, I will check the triage list, see the most acute cases, and then the less acute after”', p:'p. 1035'},
-    {t:'When the queue keeps growing they ask the lead nurse to open another triage area.', p:'p. 1036–1037'} ]},
-  { id:'esi', kicker:'Finding 2', title:'When in doubt, go higher', body:[
-    {t:'First comes a look: skin colour, sweating, body language. Nurses call these observations instinctive. Then the five-level Emergency Severity Index sets the priority. Nurses trust it, call it objective, and see following it as protection against litigation.', p:'p. 1038'},
-    {q:true, t:'“Uncommunicative patients or poor historian patients are automatically assigned an ESI-2”', p:'p. 1038'},
-    {t:'The discussion names this overtriage: under uncertainty, nurses err on the side of caution.', p:'p. 1041'} ]},
-  { id:'matrix', kicker:'Finding 3', title:'What nurses said and what was seen', body:[
-    {t:'Twelve interview themes were checked against the observations. Eight were confirmed. Three were expanded, meaning observers saw more than nurses had described. One diverged.', p:'p. 1045.e4'},
-    {q:true, t:'“Limited verification observed despite stated emphasis in interviews.”', p:'p. 1045.e4'},
-    {t:'Nurses stressed checking decisions with a colleague or doctor. Observers rarely saw it. The main text never discusses this gap; it sits in the last appendix.', p:'p. 1039, 1045.e4'} ]},
-  { id:'table', kicker:'The product', title:'Ten demands, ten design ideas', body:[
-    {t:'The themes were condensed into a cognitive demands table. Each row names a demand, why it is hard, the cues, the strategies, the likely errors, and one idea for a support feature.', p:'p. 1031–1033'},
+  { id:'problem', kicker:'The problem', title:'Triage is where a hospital decides fastest', viz:'waffle', body:[
+    {t:'Triage nurses make rapid, often autonomous decisions about who is seen first. They draw on intuition, clinical experience and pattern recognition.', p:'p. 1029, col. 1, l. 13-17'},
+    {t:'The paper cites a chart review in which 4% to 17% of hospital admissions involve an adverse medical event, nearly two-thirds of them preventable. Error rates in emergency departments are estimated to be 10% to 15% higher than in other hospital settings.', p:'p. 1029, col. 1, l. 44-45; col. 2, l. 10-11'} ]},
+  { id:'idea', kicker:'The idea', title:'Build the support around how nurses think', viz:'sample', body:[
+    {q:true, t:'“Despite their importance, cognitive processes are rarely considered in the design of CDSS, and there is limited guidance in the health care literature on how to explore them.”', p:'p. 1029, col. 2, l. 29-32'},
+    {t:'So the authors ran a cognitive task analysis at Mater Dei Hospital in Malta. They interviewed 16 triage nurses, then spent 6 hours watching 55 triage sessions handled by other nurses.', p:'p. 1030, col. 2, l. 5-6, 41; p. 1034, col. 1, l. 1'},
+    {t:'Interview questions were open-ended and scenario-based, with probes such as “What made you choose that action?”', p:'p. 1034, col. 1, l. 37-38'} ]},
+  { id:'themes', kicker:'The analysis', title:'Twenty-six themes', viz:'themes', body:[
+    {t:'Transcripts and field notes were coded in NVivo following Braun and Clarke, then sorted into CTA categories such as prioritization, uncertainty management and verification.', p:'p. 1035, col. 1, l. 40-41; col. 2, l. 6-7'},
+    {t:'A second researcher reviewed the coding. No new codes appeared after the 13th of the 16 interviews.', p:'p. 1034, col. 1, l. 46-47; col. 2, l. 3-4'} ]},
+  { id:'queue', kicker:'Finding 1', title:'The list is a suggestion', viz:'queue', body:[
+    {t:'Patients are listed by registration time. Nurses normally follow the list, but they scan it for acute cases and take those first.', p:'p. 1035, col. 2, l. 33-41'},
+    {q:true, t:'“When there’s a long list of triage, for example, more than 10, I will check the triage list, see the most acute cases, and then the less acute after”', p:'p. 1035, col. 2, l. 42-44'},
+    {t:'When the queue keeps growing they ask the lead nurse to open another triage area.', p:'p. 1037, col. 1, l. 3-4'} ]},
+  { id:'esi', kicker:'Finding 2', title:'When in doubt, go higher', viz:'esi', body:[
+    {t:'First comes a look: skin colour, sweating, body language. Nurses call these observations instinctive. Then the five-level Emergency Severity Index sets the priority. Nurses trust it, call it objective, and see following it as protection against litigation.', p:'p. 1038, col. 1, l. 13-17, 28-30'},
+    {q:true, t:'“Uncommunicative patients or poor historian patients are automatically assigned an ESI-2”', p:'p. 1038, col. 2, l. 25-26'},
+    {t:'The discussion names this overtriage: under uncertainty, nurses err on the side of caution.', p:'p. 1041, col. 2, l. 1-2'} ]},
+  { id:'matrix', kicker:'Finding 3', title:'What nurses said and what was seen', viz:'matrix', body:[
+    {t:'Twelve interview themes were checked against the observations. Eight were confirmed. Three were expanded, meaning observers saw more than nurses had described. One diverged.', p:'p. 1045.e4, table'},
+    {q:true, t:'“Limited verification observed despite stated emphasis in interviews.”', p:'p. 1045.e4, table, last row'},
+    {t:'Nurses stressed checking decisions with a colleague or doctor. Observers rarely saw it. The main text never discusses this gap; it sits in the last appendix.', p:'p. 1039, col. 1, l. 14-17; p. 1045.e4, table'} ]},
+  { id:'table', kicker:'The product', title:'Ten demands, ten design ideas', viz:'pairs', body:[
+    {t:'The themes were condensed into a cognitive demands table. Each row names a demand, why it is hard, the cues, the strategies, the likely errors, and one idea for a support feature.', p:'p. 1031–1033, table'},
     {t:'The full rows are in the explorer further down this page.'} ]},
-  { id:'stop', kicker:'Where it stops', title:'No system was built', body:[
+  { id:'stop', kicker:'Where it stops', title:'No system was built', viz:'stops', body:[
     {t:'The paper ends with design ideas. It reports no prototype, no evaluation, and no step where nurses reviewed the ideas.', tag:'Claude’s reading'},
-    {t:'The authors’ own limits: one hospital, a small sample, one month of observation, an insider researcher, and nurses who knew they were being watched.', p:'p. 1042'} ]}
+    {t:'The authors’ own limits: one hospital, a small sample, one month of observation, an insider researcher, and nurses who knew they were being watched.', p:'p. 1042, col. 2, l. 20-29'} ]}
 ];
+/* The paper's main table or instrument, shown as a pick-one explorer. Set EXPLORER = null when the paper has none. */
+const EXPLORER = {
+  title: 'The cognitive demands table',
+  intro: 'Pick a demand to see its row. The wording is condensed from the table.',
+  ref: 'p. 1031–1033, table',
+  name: 'n', ref_key: 'p',
+  fields: [['why','Why difficult'],['cue','Cues'],['str','Strategy'],['err','Potential errors'],['idea','Design idea',true]],
+  items: DATA.cdt
+};
 const TRUST = {
+  authorsRef: 'p. 1042, col. 2, l. 20-29',
   authors: ['One hospital and a small sample, so findings may not generalize.','Observation fell within one month, so seasonal variation is not covered.','The researcher is an insider at the hospital.','Qualitative interpretation stays subjective.','Nurses knew they were being observed.'],
   claude: [
-    ['The design ideas are proposals. No prototype, no evaluation, and no step where nurses reviewed the ideas is reported.','p. 1031–1033'],
-    ['The discussion says overtriage “was found to result in” longer stays, more testing and higher costs. Interviews and six hours of observation cannot measure that.','p. 1041'],
-    ['The said-versus-seen comparison uses different nurses in each group, so the verification gap is between two groups, not within the same people.','p. 1034'],
-    ['Dates conflict: data collection is given as December 2023 to February 2024 (p. 1030) and as October 10 to December 31, 2023 (p. 1034). Triage experience is given as 2 to 29 years and as 1 to more than 20 years.','p. 1030'],
-    ['The interview questions are general walk-throughs and hypotheticals. They do not reconstruct specific past incidents the way the critical decision method does.','p. 1045.e1'],
-    ['The path from each theme to its design idea is not shown. Most rows pair one demand with one feature.','p. 1031–1033'],
-    ['The first reference’s URL carries a utm_source=chatgpt.com tag.','p. 1043'] ]
+    ['The design ideas are proposals. No prototype, no evaluation, and no step where nurses reviewed the ideas is reported.','p. 1031–1033, table'],
+    ['The discussion says overtriage “was found to result in” longer stays, more testing and higher costs. Interviews and six hours of observation cannot measure that.','p. 1041, col. 2, l. 2-3'],
+    ['The said-versus-seen comparison uses different nurses in each group, so the verification gap is between two groups, not within the same people.','p. 1034, col. 1, l. 1'],
+    ['Dates conflict: data collection is given as December 2023 to February 2024 (p. 1030, col. 2, l. 6-7) and as October 10 to December 31, 2023 (p. 1034, col. 2, l. 39). Triage experience is given as 2 to 29 years and as 1 to more than 20 years.','p. 1030, col. 2, l. 10, 33-34'],
+    ['The interview questions are general walk-throughs and hypotheticals. They do not reconstruct specific past incidents the way the critical decision method does.','p. 1045.e1, appendix 1'],
+    ['The path from each theme to its design idea is not shown. Most rows pair one demand with one feature.','p. 1031–1033, table'],
+    ['The first reference’s URL carries a utm_source=chatgpt.com tag.','p. 1043, col. 2, l. 18'] ]
 };
-const THESIS = [
-  ['Interviews plus observation, summarized in a cognitive demands table','p. 1031–1033','A ready output format for what you learn from Talent Managers: demand, why hard, cues, strategies, errors, support idea.'],
-  ['Verification was claimed in interviews and rarely observed','p. 1045.e4','An argument for adding observation or process tracing to your interviews, and for watching verification in particular.'],
-  ['Missing information leads to a default of ESI 2','p. 1038','A question to ask: what do Talent Managers default to when candidate information is incomplete?'],
-  ['The protocol is trusted partly as legal protection','p. 1038','Speaks to the accountability part of your thesis question. Do Talent Managers lean on rules for the same reason?'],
-  ['The study ends at design ideas','p. 1042–1043','Your plan to design and evaluate support goes one step further than this paper does.'],
-  ['Interview questions and observation areas','p. 1045.e1–e2','A starting list to adapt, with incident-based probes added.']
-];
-const READING = [
-  ['r1','The cognitive demands table','Read every row in full. They are condensed on this page.','p. 1031–1033'],
-  ['r2','Triangulation matrix','One page. Read the notes column.','p. 1045.e4'],
-  ['r3','Methods','Sampling, data collection, the Hawthorne measures and the analysis steps.','p. 1030, 1034–1035'],
-  ['r4','Interview results','The nurses’ own words. Judge whether the themes fit the quotes.','p. 1035–1039'],
-  ['r5','Interview questions and observation guide','Instruments you could adapt.','p. 1045.e1–e2'],
-  ['r6','Discussion and limitations','Mostly argues for a support system. Check which claims the data support.','p. 1040–1043']
-];
+const THESIS = {
+  intro: 'These are my connections to your Talent Manager study, not claims the paper makes. Keep or discard them.',
+  rows: [
+    ['Interviews plus observation, summarized in a cognitive demands table','p. 1031–1033, table','A ready output format for what you learn from Talent Managers: demand, why hard, cues, strategies, errors, support idea.'],
+    ['Verification was claimed in interviews and rarely observed','p. 1045.e4, table, last row','An argument for adding observation or process tracing to your interviews, and for watching verification in particular.'],
+    ['Missing information leads to a default of ESI 2','p. 1038, col. 2, l. 25-26','A question to ask: what do Talent Managers default to when candidate information is incomplete?'],
+    ['The protocol is trusted partly as legal protection','p. 1038, col. 1, l. 16-17','Speaks to the accountability part of your thesis question. Do Talent Managers lean on rules for the same reason?'],
+    ['The study ends at design ideas','p. 1042–1043','Your plan to design and evaluate support goes one step further than this paper does.'],
+    ['Interview questions and observation areas','p. 1045.e1–e2','A starting list to adapt, with incident-based probes added.'] ]
+};
+const READING = {
+  intro: 'This page is a map. In this order the paper takes about an hour, and the first three items carry most of its value.',
+  items: [
+    ['The cognitive demands table','Read every row in full. They are condensed on this page.','p. 1031–1033'],
+    ['Triangulation matrix','One page. Read the notes column.','p. 1045.e4'],
+    ['Methods','Sampling, data collection, the Hawthorne measures and the analysis steps.','p. 1030, 1034–1035'],
+    ['Interview results','The nurses’ own words. Judge whether the themes fit the quotes.','p. 1035–1039'],
+    ['Interview questions and observation guide','Instruments you could adapt.','p. 1045.e1–e2'],
+    ['Discussion and limitations','Mostly argues for a support system. Check which claims the data support.','p. 1040–1043'] ]
+};
 
-/* ============ ENGINE ============ */
-const h = React.createElement;
+/* =====================================================================================================
+   2. VISUALS. One motion graphic per story section, drawn in a 640 x 480 stage on the dark plate.
+      Contract for each entry:
+        kind     'data' (every mark is a number from the paper) or 'schematic' (illustrates behaviour)
+        caption  one sentence shown under the figure
+        draw()   returns the SVG in its FINAL, fully readable state. No state, no props.
+        play(tl, q, M)  adds the animation to a GSAP timeline. q('.class') selects inside this figure.
+                 Use from-tweens and tl.set so the timeline ENDS at the drawn state.
+        idle(q, M)      optional: returns a looping timeline that runs after play finishes. Animate only
+                 elements marked data-idle (drawn with opacity 0), so stopping it leaves no trace.
+   ===================================================================================================== */
+const e = React.createElement;
+const T = (x, y, s, cls = '', anchor = 'start', extra = {}) => e('text', Object.assign({x, y, className: cls, textAnchor: anchor}, extra), s);
+const VIZ = {
+  waffle: { kind:'data', caption:'A chart review cited by the paper: adverse medical events per 100 hospital admissions.',
+    draw(){
+      const b = d3.scaleBand().domain(d3.range(10)).range([0,300]).paddingInner(0.14), {low, high} = DATA.admissions, sq = b.bandwidth();
+      return e(React.Fragment, null,
+        T(36, 64, '100 hospital admissions', 'h hd'),
+        e('g', {transform:'translate(36,92)'},
+          d3.range(100).map(i => e('rect', {key:i, className:'sq f-line', x:b(i%10), y:b(Math.floor(i/10)), width:sq, height:sq, rx:4})),
+          d3.range(high).map(i => e('rect', {key:'h'+i, className:'hot f-bad', opacity:i<low?1:.5, x:b(i%10), y:b(Math.floor(i/10)), width:sq, height:sq, rx:4}))),
+        T(376, 128, 'adverse medical events', 'xs mu hd'),
+        e('text', {x:372, y:204, className:'big bad'}, e('tspan', null, low), e('tspan', {className:'h mu', dx:12}, 'to'), e('tspan', {className:'n2', dx:12}, high)),
+        T(376, 234, 'in every 100 admissions', 's mu hd'),
+        T(376, 318, 'Of those, nearly two-thirds', 's pv'),
+        [0,1,2].map(i => e('rect', {key:'p'+i, className:'pvb ' + (i<2 ? 'f-bad' : 'f-none st-bad'), x:376+i*80, y:332, width:72, height:16, rx:3, strokeWidth:1.5})),
+        T(376, 374, 'are preventable', 's mu pv'));
+    },
+    play(tl, q, M){
+      const {low, high} = DATA.admissions;
+      M.rise(tl, q('.hd'), {stagger:.08}, 0);
+      tl.from(q('.sq'), {scale:0, opacity:0, transformOrigin:'50% 50%', duration:.4, ease:'back.out(1.7)', stagger:{each:.012, grid:[10,10], from:'start'}}, 0.1);
+      tl.from(q('.big'), {opacity:0, y:14, duration:.5}, 1.2);
+      tl.from(q('.hot'), {scale:0, transformOrigin:'50% 50%', duration:.3, ease:'back.out(2.4)', stagger:.1}, 1.5);
+      M.count(tl, q('.n2')[0], low, high, {duration:(high-low)*.1}, 1.5 + low*.1);
+      M.rise(tl, q('.pv'), {stagger:.5}, '>');
+      tl.from(q('.pvb'), {scaleX:0, transformOrigin:'0% 50%', duration:.4, stagger:.16}, '<0.1');
+    } },
+
+  sample: { kind:'data', caption:'Who was studied: 16 nurses interviewed, and 55 triage sessions observed with other nurses.',
+    draw(){
+      const edu = DATA.interviews.education.flatMap(d => d3.range(d.n).map(() => d.c)), ob = DATA.observation;
+      const sx = d3.scaleBand().domain(d3.range(ob.sessions)).range([300,612]).paddingInner(0.08);
+      return e(React.Fragment, null,
+        T(36, 74, DATA.interviews.n, 'num n16'), T(96, 60, 'nurses', 's mu lab'), T(96, 78, 'interviewed', 's mu lab'),
+        edu.map((c,i) => e('circle', {key:'n'+i, className:'nurse '+c, cx:58+(i%4)*48, cy:126+Math.floor(i/4)*48, r:18})),
+        DATA.interviews.education.map((d,i) => e('g', {key:'l'+i, className:'leg'}, e('circle', {className:d.c, cx:44, cy:338+i*26, r:6}), T(60, 343+i*26, d.n+' '+d.k, 's'))),
+        e('line', {className:'st-line div', x1:264, y1:36, x2:264, y2:444}),
+        T(300, 74, ob.patients, 'num n55'), T(360, 60, 'triage sessions', 's mu lab'), T(360, 78, 'observed', 's mu lab'),
+        d3.range(ob.patients).map(i => e('circle', {key:'p'+i, className:'pt f-mu', cx:308+(i%11)*29.6, cy:120+Math.floor(i/11)*29, r:8.5})),
+        d3.range(ob.sessions).map(i => e('g', {key:'s'+i, className:'ses'},
+          e('rect', {className:'f-2 st-acc', x:sx(i), y:286, width:sx.bandwidth(), height:42, rx:6}),
+          T(sx(i)+sx.bandwidth()/2, 312, ob.hoursEach+' h', 'xs acc', 'middle'))),
+        T(300, 362, ob.sessions+' sessions on 3 days, peak and off-peak', 's mu cap'),
+        T(300, 384, 'Different nurses from the interviews', 's mu cap'));
+    },
+    play(tl, q, M){
+      M.rise(tl, q('.lab'), {stagger:.05}, 0);
+      M.count(tl, q('.n16')[0], 0, DATA.interviews.n, {duration:.9}, 0);
+      tl.from(q('.nurse'), {x:-140, opacity:0, duration:.7, ease:'back.out(1.3)', stagger:.045}, 0.1);
+      M.rise(tl, q('.leg'), {stagger:.12}, '>-0.3');
+      tl.from(q('.div'), {scaleY:0, transformOrigin:'50% 0%', duration:.5}, '<');
+      M.count(tl, q('.n55')[0], 0, DATA.observation.patients, {duration:1.2}, '>-0.2');
+      tl.from(q('.pt'), {x:160, opacity:0, duration:.6, ease:'power3.out', stagger:{each:.018, from:'end'}}, '<');
+      tl.from(q('.ses'), {scaleX:0, transformOrigin:'0% 50%', opacity:0, duration:.45, ease:'power2.out', stagger:.14}, '>-0.3');
+      M.rise(tl, q('.cap'), {stagger:.15}, '>-0.1');
+    } },
+
+  themes: { kind:'data', caption:'The 26 code labels, by source, and the point where interviews stopped producing new codes.',
+    draw(){
+      const y = i => 100 + i*21.4, th = DATA.themes, sat = DATA.saturation;
+      return e(React.Fragment, null,
+        T(34, 60, th.interview.length, 'num c16'), T(92, 60, 'from interviews', 's mu lab'),
+        T(356, 60, th.observation.length, 'num c10'), T(412, 60, 'from observation', 's mu lab'),
+        e('line', {className:'st-line rule', x1:34, y1:76, x2:612, y2:76}),
+        th.interview.map((s,i) => e('g', {key:'i'+i, className:'ti'}, e('circle', {className:'f-acc', cx:40, cy:y(i)-5, r:4.5}), T(54, y(i), s, 's'))),
+        th.observation.map((s,i) => e('g', {key:'o'+i, className:'to'}, e('circle', {className:'f-ok', cx:362, cy:y(i)-5, r:4.5}), T(376, y(i), s, 's'))),
+        T(356, 356, 'Interviews, in order', 'xs mu satl'),
+        d3.range(sat.of).map(i => e('rect', {key:'t'+i, className:'tick ' + (i<sat.at ? 'f-acc' : 'f-line'), x:356+i*16, y:368, width:11, height:24, rx:2})),
+        T(356, 418, 'No new codes after interview '+sat.at, 's satl'));
+    },
+    play(tl, q, M){
+      M.rise(tl, q('.lab'), {stagger:.08}, 0);
+      tl.from(q('.rule'), {scaleX:0, transformOrigin:'0% 50%', duration:.6}, 0);
+      M.count(tl, q('.c16')[0], 0, DATA.themes.interview.length, {duration:1.3}, 0.2);
+      tl.from(q('.ti'), {x:-24, opacity:0, duration:.4, stagger:.08}, 0.2);
+      M.count(tl, q('.c10')[0], 0, DATA.themes.observation.length, {duration:.9}, 0.7);
+      tl.from(q('.to'), {x:24, opacity:0, duration:.4, stagger:.09}, 0.7);
+      M.rise(tl, q('.satl')[0], {}, '>');
+      tl.from(q('.tick'), {scaleY:0, transformOrigin:'50% 100%', duration:.3, ease:'back.out(2)', stagger:.07}, '<0.1');
+      M.rise(tl, q('.satl')[1], {}, '>-0.2');
+    } },
+
+  queue: { kind:'schematic', caption:'How nurses describe working the list: scan it, pull the acute cases forward. The paper gives no queue data.',
+    draw(){
+      const {n, acute} = DATA.queue, x = d3.scalePoint().domain(d3.range(n)).range([46,594]);
+      const order = acute.concat(d3.range(n).filter(i => !acute.includes(i)));
+      const tok = p => e(React.Fragment, null,
+        e('circle', {className: acute.includes(p) ? 'f-acc' : 'f-2 st-mu', r:19, strokeWidth:1.5}),
+        T(0, 5, p+1, 'xs ' + (acute.includes(p) ? 'dark' : ''), 'middle'));
+      return e(React.Fragment, null,
+        T(28, 74, 'As registered', 'h qh'),
+        d3.range(n).map(p => e('g', {key:'a'+p, className:'top', transform:`translate(${x(p)},124)`, opacity:.55}, tok(p))),
+        e('rect', {className:'scan f-acc', 'data-idle':1, x:20, y:92, width:56, height:64, rx:10, opacity:0}),
+        T(28, 256, 'As the nurse takes them', 'h qh'),
+        d3.range(n).map(p => e('g', {key:'b'+p, transform:`translate(${x(order.indexOf(p))},306)`},
+          e('g', {className:'tok' + (acute.includes(p) ? ' hot' : ''), 'data-dx': x(p) - x(order.indexOf(p))}, tok(p)))),
+        e('g', {className:'key'}, e('circle', {className:'f-acc', cx:36, cy:392, r:8}), T(54, 397, 'Cases the nurse judges most acute', 's')));
+    },
+    play(tl, q, M){
+      const toks = q('.tok'), hot = q('.tok.hot'), dx = el => +el.dataset.dx;
+      tl.set(toks, {x:(i, el) => dx(el)}, 0);
+      M.rise(tl, q('.qh')[0], {}, 0);
+      tl.from(q('.top'), {y:-30, opacity:0, duration:.4, ease:'back.out(1.6)', stagger:.07}, 0.1);
+      M.rise(tl, q('.qh')[1], {}, '>');
+      tl.from(toks, {opacity:0, duration:.4, stagger:.03}, '<');
+      tl.fromTo(q('.scan'), {x:0, opacity:0}, {opacity:.28, duration:.2}, '>');
+      tl.to(q('.scan'), {x:544, duration:1.5, ease:'none'}, '>');
+      tl.to(q('.scan'), {opacity:0, duration:.25}, '>');
+      tl.to(hot, {scale:1.28, transformOrigin:'50% 50%', duration:.22, yoyo:true, repeat:1, stagger:.3}, '<-1.35');
+      M.rise(tl, q('.key'), {}, '>');
+      tl.to(hot, {y:-52, duration:.35, ease:'power2.out', stagger:.06}, '>');
+      tl.to(toks, {x:0, duration:1, ease:'power3.inOut', stagger:.02}, '>-0.1');
+      tl.to(hot, {y:0, duration:.55, ease:'bounce.out', stagger:.06}, '>-0.25');
+    } },
+
+  esi: { kind:'schematic', caption:'The Emergency Severity Index has five levels. A patient with missing information defaults to level 2.',
+    draw(){
+      const y = d3.scaleBand().domain(d3.range(5)).range([36,352]).paddingInner(0.16), h = y.bandwidth(), cy = y(1)+h/2;
+      const token = (cls, extra) => e('g', Object.assign({className:cls}, extra), e('circle', {className:'f-ink', r:21}), T(0, 8, '?', 'h dark', 'middle', {style:{fontSize:24}}));
+      return e(React.Fragment, null,
+        DATA.esi.map((l,i) => e('g', {key:i, className:'lane'},
+          e('rect', {className:'f-2 st-line', x:118, y:y(i), width:494, height:h, rx:8}),
+          i===1 ? e('rect', {className:'glow f-none st-acc', x:118, y:y(i), width:494, height:h, rx:8, strokeWidth:2.5}) : null,
+          e('rect', {className:'esi'+(i+1), x:28, y:y(i), width:80, height:h, rx:8}),
+          T(68, y(i)+h/2+6, l, 'h dark', 'middle', {style:{fontSize:17}}),
+          i===0 ? T(596, y(i)+h/2+5, 'most urgent', 's mu', 'end') : null, i===4 ? T(596, y(i)+h/2+5, 'least urgent', 's mu', 'end') : null)),
+        T(104, 404, 'No history, or no shared language', 's who'),
+        [0,1].map(i => e('g', {key:'g'+i, transform:`translate(364,${cy})`}, token('ghost', {'data-idle':1, opacity:0, 'data-dy':412-cy}))),
+        e('g', {transform:`translate(364,${cy})`}, token('tok', {'data-dy':412-cy})),
+        T(320, 452, 'is placed at ESI 2 by default', 'h rule', 'middle'));
+    },
+    play(tl, q, M){
+      const tok = q('.tok')[0], dy = +tok.dataset.dy;
+      tl.set(tok, {x:-304, y:dy}, 0);
+      tl.from(q('.lane'), {x:-40, opacity:0, duration:.5, ease:'power3.out', stagger:.09}, 0);
+      tl.from(tok, {scale:0, transformOrigin:'50% 50%', duration:.4, ease:'back.out(2)'}, 0.6);
+      M.rise(tl, q('.who'), {}, '<0.1');
+      tl.to(tok, {rotation:11, transformOrigin:'50% 50%', duration:.11, yoyo:true, repeat:5, ease:'sine.inOut'}, '>0.2');
+      tl.to(tok, {x:0, duration:1.25, ease:'power2.inOut'}, '>0.1');
+      tl.to(tok, {y:0, duration:1.25, ease:'power3.out'}, '<');
+      tl.from(q('.glow'), {opacity:0, duration:.35}, '>-0.25');
+      tl.fromTo(q('.glow'), {strokeWidth:9}, {strokeWidth:2.5, duration:.6, ease:'power2.out'}, '<');
+      M.rise(tl, q('.rule'), {}, '<0.1');
+    },
+    idle(q, M){
+      const g = window.gsap, loop = g.timeline({repeat:-1, repeatDelay:.6});
+      q('.ghost').forEach((el, i) => {
+        loop.fromTo(el, {x:-304, y:+el.dataset.dy, opacity:0}, {opacity:.55, duration:.3}, i*1.5);
+        loop.to(el, {x:0, duration:1.3, ease:'power2.inOut'}, i*1.5 + .2);
+        loop.to(el, {y:0, duration:1.3, ease:'power3.out'}, '<');
+        loop.to(el, {opacity:0, duration:.3}, '>-0.2');
+      });
+      return loop;
+    } },
+
+  matrix: { kind:'data', caption:'The triangulation matrix: each interview theme checked against what observers saw.',
+    draw(){
+      const y = d3.scalePoint().domain(d3.range(DATA.matrix.length)).range([118,452]), X0 = 446, X1 = 590;
+      const counts = ['c','e','d'].map(k => DATA.matrix.filter(m => m[1]===k).length), total = DATA.matrix.length;
+      let acc = 28;
+      return e(React.Fragment, null,
+        ['c','e','d'].map((k,j) => { const w = counts[j]/total*584 - 5, x0 = acc; acc += w+5;
+          return e('g', {key:k}, e('rect', {className:'tal f-'+DATA.rel[k].k, x:x0, y:26, width:w, height:12, rx:3}), T(x0, 58, counts[j]+' '+DATA.rel[k].l, 'xs tl '+DATA.rel[k].k)); }),
+        T(X0, 92, 'said', 'xs mu col', 'middle'), T(X1, 92, 'seen', 'xs mu col', 'middle'),
+        DATA.matrix.map((m,i) => { const k = m[1], c = DATA.rel[k].k;
+          return e('g', {key:i},
+            T(28, y(i)+5, m[0], 's row' + (k==='d' ? ' bad' : '')),
+            e('circle', {className:'said f-ink', cx:X0, cy:y(i), r:5}),
+            e('line', {className:(k==='d' ? 'dl' : 'ln')+' st-'+c, x1:X0+9, y1:y(i), x2:k==='d' ? X0+62 : X1-(k==='e'?13:9), y2:y(i), strokeWidth:2, strokeLinecap:'round'}),
+            k==='d' ? e('g', {className:'gap'},
+                e('path', {className:'st-bad f-none', d:`M${X0+78} ${y(i)-7} l14 14 M${X0+92} ${y(i)-7} l-14 14`, strokeWidth:2.5, strokeLinecap:'round'}),
+                e('circle', {className:'f-none st-bad', cx:X1, cy:y(i), r:6, strokeWidth:2, strokeDasharray:'3 3'}),
+                e('circle', {className:'ring f-none st-bad', cx:X1, cy:y(i), r:7, strokeWidth:1.5}))
+              : e('circle', {className:'seen f-'+c, cx:X1, cy:y(i), r:k==='e' ? 9 : 5}));
+        }));
+    },
+    play(tl, q, M){
+      tl.from(q('.tal'), {scaleX:0, transformOrigin:'0% 50%', duration:.6, ease:'power3.out', stagger:.2}, 0);
+      M.rise(tl, q('.tl'), {stagger:.2}, 0.2);
+      M.rise(tl, q('.col'), {}, 0.5);
+      tl.from(q('.row'), {x:-18, opacity:0, duration:.35, stagger:.06}, 0.5);
+      tl.from(q('.said'), {scale:0, transformOrigin:'50% 50%', duration:.3, ease:'back.out(3)', stagger:.06}, 0.7);
+      M.draw(tl, q('.ln'), {duration:.5, stagger:.09}, 1.5);
+      tl.from(q('.seen'), {scale:0, transformOrigin:'50% 50%', duration:.35, ease:'back.out(3)', stagger:.09}, 1.9);
+      const dl = q('.dl')[0], x1 = +dl.getAttribute('x1'), x2 = +dl.getAttribute('x2');
+      tl.fromTo(dl, {attr:{x2:x1}}, {attr:{x2:x1+130}, duration:.55, ease:'power2.in'}, '>');
+      tl.to(dl, {attr:{x2:x2}, duration:.7, ease:'elastic.out(1,0.45)'}, '>');
+      tl.from(q('.gap'), {opacity:0, scale:.4, transformOrigin:'50% 50%', duration:.4, ease:'back.out(2)'}, '<0.1');
+    } },
+
+  pairs: { kind:'data', caption:'The cognitive demands table, reduced to its two ends: each demand and the feature proposed for it.',
+    draw(){
+      const y = d3.scalePoint().domain(d3.range(DATA.cdt.length)).range([84,452]);
+      return e(React.Fragment, null,
+        T(226, 42, 'Cognitive demand', 'xs mu hd', 'end'), T(346, 42, 'Design idea', 'xs acc hd'),
+        DATA.cdt.map((d,i) => e('g', {key:i},
+          T(226, y(i)+5, d.s, 'dem', 'end'),
+          e('circle', {className:'a f-ink', cx:240, cy:y(i), r:5}),
+          e('line', {className:'ln st-acc', x1:240, y1:y(i), x2:332, y2:y(i), strokeWidth:2}),
+          e('circle', {className:'spark f-ink', 'data-idle':1, cx:240, cy:y(i), r:3.5, opacity:0}),
+          e('circle', {className:'b f-acc', cx:332, cy:y(i), r:5}),
+          T(346, y(i)+5, d.i, 'idea acc'))));
+    },
+    play(tl, q, M){
+      M.rise(tl, q('.hd'), {stagger:.1}, 0);
+      tl.from(q('.dem'), {x:-20, opacity:0, duration:.4, stagger:.08}, 0.1);
+      tl.from(q('.a'), {scale:0, transformOrigin:'50% 50%', duration:.3, ease:'back.out(3)', stagger:.08}, 0.2);
+      M.draw(tl, q('.ln'), {duration:.5, stagger:.08}, 0.7);
+      tl.from(q('.b'), {scale:0, transformOrigin:'50% 50%', duration:.3, ease:'back.out(3)', stagger:.08}, 1.1);
+      tl.from(q('.idea'), {x:16, opacity:0, duration:.4, stagger:.08}, 1.15);
+    },
+    idle(q){
+      const loop = window.gsap.timeline({repeat:-1, repeatDelay:1.2});
+      loop.fromTo(q('.spark'), {x:0, opacity:0}, {x:92, opacity:1, duration:.7, ease:'power1.in', stagger:.12}, 0);
+      loop.to(q('.spark'), {opacity:0, duration:.15, stagger:.12}, .62);
+      return loop;
+    } },
+
+  stops: { kind:'data', caption:'How far the study goes along the path from understanding experts to a tested system.',
+    draw(){
+      const x = d3.scalePoint().domain(d3.range(DATA.pipeline.length)).range([64,576]), Y = 286, stop = DATA.pipeline.filter(s => s.done).length - 1;
+      return e(React.Fragment, null,
+        T(320, 118, PAPER.facts[PAPER.facts.length-1][0], 'big zero', 'middle'),
+        T(320, 152, PAPER.facts[PAPER.facts.length-1][1], 's mu zl', 'middle'),
+        e('line', {className:'st-line', x1:x(stop), y1:Y, x2:x(DATA.pipeline.length-1), y2:Y, strokeWidth:2, strokeDasharray:'4 8'}),
+        e('line', {className:'done st-ok', x1:x(0), y1:Y, x2:x(stop), y2:Y, strokeWidth:3.5, strokeLinecap:'round'}),
+        DATA.pipeline.map((s,i) => e('g', {key:i, className:'node'},
+          e('circle', {className:s.done ? 'f-ok' : 'f-2 st-mu', cx:x(i), cy:Y, r:25, strokeWidth:2, strokeDasharray:s.done ? null : '5 5'}),
+          s.done ? e('path', {className:'chk f-none', d:`M${x(i)-10} ${Y+1} l7 8 l13 -16`, stroke:'var(--p-bg)', strokeWidth:4, strokeLinecap:'round', strokeLinejoin:'round'}) : null,
+          T(x(i), Y+56, s.l, 's' + (s.done ? '' : ' mu'), 'middle'))),
+        e('line', {className:'wall st-acc', x1:x(stop)+64, y1:Y-58, x2:x(stop)+64, y2:Y+72, strokeWidth:2.5, strokeLinecap:'round'}),
+        e('g', {transform:`translate(${x(stop)+40},${Y-44})`}, e('circle', {className:'trav f-ink', r:8, 'data-dx': x(0)-x(stop)-40})),
+        T(x(stop)+64, Y+100, 'The paper stops here', 'h acc halt', 'middle'),
+        T(320, 448, 'Building and testing the support is left to future work.', 's mu zl', 'middle'));
+    },
+    play(tl, q, M){
+      const trav = q('.trav')[0], dx = +trav.dataset.dx;
+      tl.set(trav, {x:dx}, 0);
+      tl.from(q('.zero'), {scale:.2, opacity:0, transformOrigin:'50% 60%', duration:.7, ease:'back.out(1.8)'}, 0);
+      M.rise(tl, q('.zl')[0], {}, 0.3);
+      tl.from(q('.node'), {y:18, opacity:0, duration:.45, stagger:.1}, 0.4);
+      tl.from(trav, {scale:0, transformOrigin:'50% 50%', duration:.3}, 1.1);
+      M.draw(tl, q('.done'), {duration:1.6, ease:'none'}, 1.4);
+      tl.to(trav, {x:0, duration:2, ease:'none'}, 1.4);
+      tl.from(q('.chk'), {scale:0, transformOrigin:'50% 50%', duration:.3, ease:'back.out(3)', stagger:.8}, 1.4);
+      M.draw(tl, q('.wall'), {duration:.4}, '>-0.5');
+      tl.to(trav, {x:16, duration:.16, yoyo:true, repeat:3, ease:'power2.out'}, '>');
+      M.rise(tl, q('.halt'), {}, '<');
+      M.rise(tl, q('.zl')[1], {}, '>');
+    } }
+};
+
+/* =====================================================================================================
+   3. ENGINE. Keep as is. It reads the data above and plays whichever visuals the sections name.
+   ===================================================================================================== */
 const { useState, useEffect, useRef } = React;
-const EASE = 'cubic-bezier(.2,.7,.2,1)';
-const Pg = ({p}) => p ? h('span', {className:'font-mono text-[11px] text-muted border border-line rounded px-1.5 py-px whitespace-nowrap align-middle'}, p) : null;
-const Tag = ({children}) => h('span', {className:'font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-soft text-accent align-middle'}, children);
-const T = (x, y, s, o={}) => h('text', {key:o.key, x, y, textAnchor:o.a||'start', className:o.cls||'', style:Object.assign({fill:o.fill||'var(--ink)', fontSize:o.size||15, fontWeight:o.w||400}, o.style||{})}, s);
-const rise = (on, i, step=35) => ({opacity:on?1:0, transform:on?'translateY(0px)':'translateY(14px)', transition:`opacity .5s ${EASE}, transform .6s ${EASE}`, transitionDelay:(on?i*step:0)+'ms'});
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Motion kit: small helpers so visuals stay short. All tolerate an empty selection. */
+const M = {
+  rise(tl, t, o = {}, at){ if (t && (t.length === undefined || t.length)) tl.from(t, Object.assign({y:12, opacity:0, duration:.5, ease:'power2.out'}, o), at); return tl; },
+  draw(tl, t, o = {}, at){ const list = (t && t.length !== undefined ? Array.from(t) : [t]).filter(n => n && n.getTotalLength && !n.getAttribute('stroke-dasharray'));
+    list.forEach(n => { n.__len = n.getTotalLength(); n.style.strokeDasharray = n.__len; });
+    if (list.length) tl.fromTo(list, {strokeDashoffset:(i, n) => n.__len}, Object.assign({strokeDashoffset:0, duration:.6, ease:'power2.out'}, o), at); return tl; },
+  count(tl, node, from, to, o = {}, at){ if (!node) return tl; const v = {n:from}, fmt = o.format || (n => Math.round(n));
+    tl.fromTo(v, {n:from}, {n:to, duration:o.duration || 1, ease:o.ease || 'power1.out', onUpdate:() => { node.textContent = fmt(v.n); }}, at); return tl; }
+};
+const titleCard = (s, i) => ({ kind:'title', caption:s.title,
+  draw(){ const lines = ['']; s.title.split(' ').forEach(w => { const cur = lines[lines.length-1]; if ((cur+' '+w).trim().length > 22) lines.push(w); else lines[lines.length-1] = (cur+' '+w).trim(); });
+    return e(React.Fragment, null, T(48, 150, String(i+1).padStart(2,'0'), 'big acc tc'), lines.map((l,j) => T(48, 230+j*44, l, 'num tc', 'start', {key:j, style:{fontSize:34}}))); },
+  play(tl, q, M){ M.rise(tl, q('.tc'), {stagger:.12, y:24}, 0); } });
+const FIGS = SECTIONS.map((s, i) => VIZ[s.viz] || titleCard(s, i));   // one figure per actual section, never a fixed count
 
-function VizWaffle({on}){
-  const band = d3.scaleBand().domain(d3.range(10)).range([0,354]).paddingInner(0.16);
-  const {low, high} = DATA.admissions;
-  return [
-    T(320, 40, 'Of every 100 hospital admissions', {key:'t', a:'middle', size:19, w:600, cls:'disp'}),
-    h('g', {key:'g', transform:'translate(143,62)'}, d3.range(100).map(i => {
-      const kind = i < low ? 2 : i < high ? 1 : 0;
-      return h('rect', {key:i, x:band(i%10), y:band(Math.floor(i/10)), width:band.bandwidth(), height:band.bandwidth(), rx:3,
-        style:{fill: on && kind ? 'var(--bad)' : 'var(--line)', opacity: kind===1 && on ? .42 : 1, transition:'fill .5s, opacity .5s', transitionDelay:(on? (kind? 300+i*45 : 0):0)+'ms'}});
-    })),
-    T(320, 446, low+' to '+high+' involve an adverse medical event.', {key:'c1', a:'middle', size:17, style:rise(on,20)}),
-    T(320, 470, 'Nearly two-thirds of those are preventable.', {key:'c2', a:'middle', size:15, fill:'var(--muted)', style:rise(on,26)})
-  ];
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 1800); }
+function copy(text){
+  const done = () => toast('Copied: ' + text);
+  const fallback = () => { const a = document.createElement('textarea'); a.value = text; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); done(); } catch (err) { toast(text); } a.remove(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
 }
-function VizMethod({on}){
-  const edu = DATA.interviews.education.flatMap(e => d3.range(e.n).map(() => e.c));
-  const gx = d3.scalePoint().domain(d3.range(4)).range([52,196]), gy = d3.scalePoint().domain(d3.range(4)).range([110,254]);
-  const px = d3.scalePoint().domain(d3.range(11)).range([330,600]), py = d3.scalePoint().domain(d3.range(5)).range([112,220]);
-  const sx = d3.scaleBand().domain(d3.range(DATA.observation.sessions)).range([322,608]).paddingInner(0.1);
-  return [
-    T(124, 62, '16', {key:'a', a:'middle', size:40, w:800, cls:'disp'}), T(124, 84, 'nurses interviewed', {key:'a2', a:'middle', size:14, fill:'var(--muted)'}),
-    ...edu.map((c,i) => h('circle', {key:'n'+i, cx:gx(i%4), cy:gy(Math.floor(i/4)), r:17, style:Object.assign({fill:c}, rise(on,i,40))})),
-    ...DATA.interviews.education.map((e,i) => h('g', {key:'l'+i, style:rise(on,18+i)}, h('circle', {cx:40, cy:300+i*26, r:6, style:{fill:e.c}}), T(54, 305+i*26, e.n+' '+e.k, {size:14}))),
-    h('line', {key:'d', x1:270, y1:40, x2:270, y2:440, style:{stroke:'var(--line)'}}),
-    T(465, 62, '55', {key:'b', a:'middle', size:40, w:800, cls:'disp'}), T(465, 84, 'triage sessions observed', {key:'b2', a:'middle', size:14, fill:'var(--muted)'}),
-    ...d3.range(55).map(i => h('circle', {key:'p'+i, cx:px(i%11), cy:py(Math.floor(i/11)), r:8, style:Object.assign({fill:'var(--muted)'}, rise(on,i,14))})),
-    ...d3.range(DATA.observation.sessions).map(i => h('g', {key:'s'+i, style:rise(on,30+i*3)},
-      h('rect', {x:sx(i), y:270, width:sx.bandwidth(), height:34, rx:4, style:{fill:'var(--accent-soft)', stroke:'var(--accent)'}}),
-      T(sx(i)+sx.bandwidth()/2, 292, '1.5 h', {a:'middle', size:14, cls:'mono', fill:'var(--accent)'}))),
-    T(465, 332, '4 sessions on 3 days, peak and off-peak', {key:'c', a:'middle', size:14, fill:'var(--muted)', style:rise(on,44)}),
-    T(465, 354, 'Different nurses from the interviews', {key:'c2', a:'middle', size:14, fill:'var(--muted)', style:rise(on,46)})
-  ];
-}
-function VizThemes({on}){
-  const y = d3.scalePoint().domain(d3.range(16)).range([92,462]);
-  const col = (arr, x, c, base) => arr.map((s,i) => h('g', {key:base+i, style:rise(on, base==='o'? i+8 : i, 45)},
-    h('circle', {cx:x, cy:y(i)-5, r:5, style:{fill:c}}), T(x+14, y(i), s, {size:14})));
-  return [
-    T(20, 44, '16', {key:'a', size:34, w:800, cls:'disp'}), T(72, 44, 'codes from interviews', {key:'a2', size:14, fill:'var(--muted)'}),
-    T(350, 44, '10', {key:'b', size:34, w:800, cls:'disp'}), T(400, 44, 'from observation', {key:'b2', size:14, fill:'var(--muted)'}),
-    h('line', {key:'r', x1:20, y1:60, x2:620, y2:60, style:{stroke:'var(--ink)', strokeWidth:2}}),
-    ...col(DATA.themes.interview, 26, 'var(--accent)', 'i'), ...col(DATA.themes.observation, 356, 'var(--ok)', 'o')
-  ];
-}
-function VizQueue({on}){
-  const {n, acute} = DATA.queue;
-  const x = d3.scalePoint().domain(d3.range(n)).range([44,596]);
-  const order = acute.concat(d3.range(n).filter(i => !acute.includes(i)));
-  const dot = (p, pos, yy, faded) => h('g', {key:(faded?'f':'m')+p, style:{transform:`translate(${x(pos)}px,${yy}px)`, transition:`transform 1.1s ${EASE}`, transitionDelay:(acute.includes(p)?200:500)+'ms', opacity:faded?.45:1}},
-    h('circle', {r:19, style:{fill:acute.includes(p)?'var(--esi2)':'var(--surface)', stroke:acute.includes(p)?'var(--esi2)':'var(--muted)', strokeWidth:1.5}}),
-    T(0, 5, String(p+1), {a:'middle', size:14, cls:'mono', fill:acute.includes(p)?'var(--bg)':'var(--ink)'}));
-  return [
-    T(24, 70, 'Registration order', {key:'a', size:17, w:600, cls:'disp'}),
-    ...d3.range(n).map(p => dot(p, p, 120, true)),
-    h('path', {key:'ar', d:'M320 165 V215 M310 205 L320 217 L330 205', style:{fill:'none', stroke:'var(--muted)', strokeWidth:1.5}}),
-    T(24, 260, 'Order the nurse takes them', {key:'b', size:17, w:600, cls:'disp'}),
-    ...d3.range(n).map(p => dot(p, on ? order.indexOf(p) : p, 310, false)),
-    h('circle', {key:'k', cx:34, cy:390, r:9, style:{fill:'var(--esi2)'}}), T(52, 395, 'Cases the nurse judges most acute', {key:'k2', size:14}),
-    T(24, 440, 'Schematic. The paper describes this behaviour but gives no queue data.', {key:'n', size:13, fill:'var(--muted)'})
-  ];
-}
-function VizEsi({on}){
-  const y = d3.scaleBand().domain(d3.range(5)).range([44,354]).paddingInner(0.16);
-  const cy = y(1)+y.bandwidth()/2;
-  return [
-    ...DATA.esi.map((e,i) => h('g', {key:i},
-      h('rect', {x:112, y:y(i), width:500, height:y.bandwidth(), rx:5, style:{fill: on && i===1 ? 'var(--accent-soft)' : 'var(--surface)', stroke: on && i===1 ? 'var(--esi2)' : 'var(--line)', strokeWidth: on && i===1 ? 2 : 1, transition:'all .6s', transitionDelay:on?'700ms':'0ms'}}),
-      h('rect', {x:28, y:y(i), width:74, height:y.bandwidth(), rx:5, style:{fill:e.c}}),
-      T(65, y(i)+y.bandwidth()/2+6, e.l, {a:'middle', size:16, w:600, cls:'mono', fill:'var(--bg)'}),
-      i===0 ? T(600, y(i)+y.bandwidth()/2+5, 'most urgent', {a:'end', size:13, fill:'var(--muted)'}) : null,
-      i===4 ? T(600, y(i)+y.bandwidth()/2+5, 'least urgent', {a:'end', size:13, fill:'var(--muted)'}) : null)),
-    h('g', {key:'tok', style:{transform: on ? `translate(360px,${cy}px)` : 'translate(60px,412px)', transition:`transform 1.3s ${EASE}`, transitionDelay:on?'500ms':'0ms'}},
-      h('circle', {r:20, style:{fill:'var(--ink)'}}), T(0, 7, '?', {a:'middle', size:20, w:700, fill:'var(--bg)', cls:'disp'})),
-    T(96, 407, 'A patient who cannot give a history,', {key:'c1', size:15}),
-    T(96, 428, 'or who shares no language with the nurse', {key:'c2', size:15}),
-    T(320, 468, 'is placed at ESI 2 by default', {key:'c3', a:'middle', size:17, w:600, cls:'disp', style:rise(on,40)})
-  ];
-}
-function VizMatrix({on}){
-  const y = d3.scalePoint().domain(d3.range(12)).range([108,450]);
-  const counts = ['c','e','d'].map(k => DATA.matrix.filter(m => m[1]===k).length);
-  let acc = 24;
-  return [
-    ...['c','e','d'].map((k,j) => { const w = counts[j]/12*592 - 4, x0 = acc; acc += w+4;
-      return h('g', {key:'t'+k}, h('rect', {x:x0, y:24, width:on?w:0, height:14, rx:2, style:{fill:DATA.rel[k].c, transition:`width .9s ${EASE}`, transitionDelay:(j*250)+'ms'}}),
-        T(x0, 62, counts[j]+' '+DATA.rel[k].l.toLowerCase(), {size:13, cls:'mono', fill:DATA.rel[k].c})); }),
-    ...DATA.matrix.map((m,i) => h('g', {key:i, style:rise(on,i+6,60)},
-      m[1]==='d' && on ? h('circle', {cx:34, cy:y(i)-5, r:9, className:'pulse', style:{fill:'none', stroke:'var(--bad)', strokeWidth:2}}) : null,
-      h('circle', {cx:34, cy:y(i)-5, r:7, style:{fill:DATA.rel[m[1]].c}}),
-      T(52, y(i), m[0], {size:14.5, w:m[1]==='d'?600:400}),
-      T(616, y(i), DATA.rel[m[1]].l, {a:'end', size:12, cls:'mono', fill:DATA.rel[m[1]].c})))
-  ];
-}
-function VizLinks({on}){
-  const y = d3.scalePoint().domain(d3.range(10)).range([78,456]);
-  return [
-    T(232, 36, 'Cognitive demand', {key:'a', a:'end', size:13, cls:'mono', fill:'var(--muted)'}),
-    T(338, 36, 'Design idea', {key:'b', size:13, cls:'mono', fill:'var(--muted)'}),
-    ...DATA.cdt.map((d,i) => h('g', {key:i},
-      T(222, y(i)+5, d.s, {a:'end', size:15, w:500, style:rise(on,i,70)}),
-      h('circle', {cx:236, cy:y(i), r:5, style:Object.assign({fill:'var(--ink)'}, rise(on,i,70))}),
-      h('line', {x1:236, y1:y(i), x2:on?326:236, y2:y(i), style:{stroke:'var(--accent)', strokeWidth:2, transition:`all .7s ${EASE}`, transitionDelay:(on?300+i*70:0)+'ms'}}),
-      h('circle', {cx:326, cy:y(i), r:5, style:Object.assign({fill:'var(--accent)'}, rise(on,i+5,70))}),
-      T(340, y(i)+5, d.i, {size:15, fill:'var(--accent)', style:rise(on,i+6,70)})))
-  ];
-}
-function VizPipeline({on}){
-  const x = d3.scalePoint().domain(d3.range(5)).range([70,570]);
-  return [
-    T(320, 92, '0', {key:'z', a:'middle', size:84, w:800, cls:'disp', style:rise(on,2)}),
-    T(320, 128, 'systems built or evaluated', {key:'z2', a:'middle', size:17, fill:'var(--muted)', style:rise(on,5)}),
-    h('line', {key:'l1', x1:x(0), y1:250, x2:on?x(2):x(0), y2:250, style:{stroke:'var(--ok)', strokeWidth:3, transition:`all 1s ${EASE}`, transitionDelay:'300ms'}}),
-    h('line', {key:'l2', x1:x(2), y1:250, x2:x(4), y2:250, style:{stroke:'var(--muted)', strokeWidth:2, strokeDasharray:'5 7'}}),
-    ...DATA.pipeline.map((s,i) => h('g', {key:i, style:rise(on,i+4,140)},
-      h('circle', {cx:x(i), cy:250, r:24, style:{fill:s.done?'var(--ok)':'var(--bg)', stroke:s.done?'var(--ok)':'var(--muted)', strokeWidth:2, strokeDasharray:s.done?'none':'5 5'}}),
-      s.done ? h('path', {d:`M${x(i)-9} 251 l6 7 l12 -14`, style:{fill:'none', stroke:'var(--bg)', strokeWidth:3.5, strokeLinecap:'round', strokeLinejoin:'round'}}) : null,
-      T(x(i), 304, s.l, {a:'middle', size:15, w:s.done?600:400, fill:s.done?'var(--ink)':'var(--muted)'}))),
-    h('path', {key:'br', d:`M${x(2)+48} 196 V330`, style:{stroke:'var(--accent)', strokeWidth:2, opacity:on?1:0, transition:'opacity .6s', transitionDelay:'1100ms'}}),
-    T(x(2)+48, 362, 'The paper stops here', {key:'bt', a:'middle', size:15, w:600, fill:'var(--accent)', cls:'disp', style:rise(on,34)}),
-    T(320, 430, 'Building and testing the support is left to future work.', {key:'f', a:'middle', size:14, fill:'var(--muted)', style:rise(on,40)})
-  ];
-}
-const VIZ = [VizWaffle, VizMethod, VizThemes, VizQueue, VizEsi, VizMatrix, VizLinks, VizPipeline];
+const Ref = ({p}) => p ? e('button', {type:'button', className:'ref', title:'Copy this reference', onClick:() => copy(PAPER.cite + ', ' + p)}, p) : null;
+const Tag = ({children}) => e('span', {className:'tag'}, children);
+const Layer = React.memo(({fig, on, innerRef, label}) => e('div', {ref:innerRef, className:'layer' + (on ? ' on' : ''), 'aria-hidden':!on},
+  e('svg', {viewBox:'0 0 640 480', role:'img', 'aria-label':label, preserveAspectRatio:'xMidYMid meet'}, fig.draw())), (a, b) => a.on === b.on);
 
 function Stage({active}){
-  return h('div', {className:'order-first lg:order-last sticky top-0 z-10 h-[40vh] lg:h-screen bg-bg border-b border-line lg:border-b-0 min-w-0'},
-    h('div', {className:'relative w-full h-full'},
-      VIZ.map((V,i) => h('div', {key:i, 'aria-hidden':active!==i, className:'absolute inset-0 flex items-center justify-center p-2 lg:p-10', style:{opacity:active===i?1:0, transition:'opacity .6s', pointerEvents:active===i?'auto':'none'}},
-        h('svg', {viewBox:'0 0 640 480', role:'img', 'aria-label':SECTIONS[i].title, className:'w-full h-full max-h-[620px]'}, V({on:active===i}))))));
+  const layers = useRef([]), tls = useRef({}), idle = useRef(null), bar = useRef(null);
+  const stopIdle = () => { if (idle.current) { idle.current.kill(); idle.current = null; }
+    if (window.gsap) layers.current.forEach(l => { const els = l ? l.querySelectorAll('[data-idle]') : []; if (els.length) window.gsap.set(els, {opacity:0}); }); };
+  const run = i => {
+    const g = window.gsap, layer = layers.current[i], fig = FIGS[i];
+    if (!g || !layer) { if (bar.current) bar.current.style.transform = 'scaleX(1)'; return; }
+    stopIdle();
+    Object.keys(tls.current).forEach(k => { if (+k !== i) tls.current[k].pause(0); });
+    let tl = tls.current[i];
+    if (!tl) {
+      tl = g.timeline({paused:true});
+      try { if (fig.play) fig.play(tl, g.utils.selector(layer), M); } catch (err) { console.error('visual "' + (SECTIONS[i].viz || 'title') + '" failed to animate', err); tl.clear(); }
+      tl.eventCallback('onUpdate', () => { if (bar.current) bar.current.style.transform = 'scaleX(' + tl.progress() + ')'; });
+      tl.eventCallback('onComplete', () => { if (fig.idle && !REDUCED) { try { idle.current = fig.idle(g.utils.selector(layer), M); } catch (err) { console.error(err); } } });
+      tls.current[i] = tl;
+    }
+    if (bar.current) bar.current.style.transform = 'scaleX(' + (tl.duration() ? 0 : 1) + ')';
+    if (REDUCED || !tl.duration()) tl.progress(1); else tl.restart();
+  };
+  useEffect(() => { run(active); return stopIdle; }, [active]);
+  const fig = FIGS[active], kind = {data:'From the paper’s data', schematic:'Schematic', title:'Section'}[fig.kind] || fig.kind;
+  return e('div', {className:'stage'}, e('figure', {className:'plate', style:{margin:0}},
+    e('div', {className:'plate-head'}, e('span', null, 'Figure ' + (active+1) + ' of ' + FIGS.length), e('span', {className:'kind ' + fig.kind}, kind)),
+    e('div', {className:'plate-body'}, FIGS.map((f, i) => e(Layer, {key:i, fig:f, on:active === i, label:SECTIONS[i].title, innerRef:el => layers.current[i] = el}))),
+    e('figcaption', {className:'plate-foot'},
+      e('div', {className:'plate-cap'}, e('span', null, fig.caption), e('button', {type:'button', id:'replay', onClick:() => run(active)}, 'Replay')),
+      e('div', {className:'plate-bar'}, e('i', {ref:bar})))));
 }
 function Story({active, setActive}){
   const refs = useRef([]);
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return;
-    const narrow = window.matchMedia('(max-width:1023px)').matches;
-    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setActive(+e.target.dataset.i); }),
-      {rootMargin: narrow ? '-70% 0px -30% 0px' : '-50% 0px -50% 0px', threshold:0});
+    const narrow = window.matchMedia('(max-width:920px)').matches;
+    const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) setActive(+en.target.dataset.i); }),
+      {rootMargin: narrow ? '-80% 0px -20% 0px' : '-50% 0px -50% 0px', threshold:0});
     refs.current.forEach(el => el && io.observe(el));
     return () => io.disconnect();
   }, []);
-  return h('div', {className:'min-w-0'}, SECTIONS.map((s,i) =>
-    h('section', {key:s.id, id:s.id, 'data-i':i, ref:el => refs.current[i]=el, className:'min-h-[110vh] lg:min-h-[150vh] flex items-center'},
-      h('div', {className:'max-w-md flex flex-col gap-4 py-10 transition-opacity duration-500', style:{opacity:active===i?1:.35}},
-        h('p', {className:'font-mono text-[11px] uppercase tracking-widest text-accent'}, s.kicker),
-        h('h2', {className:'font-display font-bold text-3xl leading-tight'}, s.title),
-        s.body.map((b,j) => b.q
-          ? h('blockquote', {key:j, className:'border-l-[3px] border-accent pl-4 italic text-[17px] leading-relaxed'}, b.t, ' ', h(Pg, {p:b.p}))
-          : h('p', {key:j, className:'text-[17px] leading-relaxed'}, b.tag ? h(React.Fragment, null, h(Tag, null, b.tag), ' ') : null, b.t, ' ', h(Pg, {p:b.p})))))));
+  const two = n => String(n).padStart(2, '0');
+  return e('div', {className:'steps'}, SECTIONS.map((s, i) =>
+    e('section', {key:s.id, id:s.id, 'data-i':i, ref:el => refs.current[i] = el, className:'step' + (active === i ? ' on' : '')},
+      e('div', {className:'step-in'},
+        e('p', {className:'kick'}, e('b', null, two(i+1)), e('span', {className:'mono'}, 'of ' + two(SECTIONS.length) + ' · ' + s.kicker)),
+        e('h2', null, s.title),
+        s.body.map((b, j) => b.q
+          ? e('blockquote', {key:j}, b.t, ' ', e(Ref, {p:b.p}))
+          : e('p', {key:j}, b.tag ? e(React.Fragment, null, e(Tag, null, b.tag), ' ') : null, b.t, ' ', e(Ref, {p:b.p})))))));
 }
 function Explorer(){
-  const [i, setI] = useState(0); const d = DATA.cdt[i];
-  const row = (k, v, idea) => [h('dt', {key:k+'t', className:'font-mono text-[11px] uppercase tracking-wider text-muted pt-1'}, k), h('dd', {key:k+'d', className: idea ? 'border-l-[3px] border-accent pl-3 font-semibold' : ''}, v)];
-  return h('div', {className:'grid lg:grid-cols-[300px_minmax(0,1fr)] gap-6 items-start'},
-    h('div', {className:'flex flex-row flex-wrap lg:flex-col gap-1', role:'group', 'aria-label':'Cognitive demands'}, DATA.cdt.map((c,j) =>
-      h('button', {key:j, id:'cdt-'+j, type:'button', 'aria-pressed':i===j, onClick:() => setI(j), className:'text-left font-display text-sm leading-snug px-2.5 py-2 rounded border ' + (i===j ? 'bg-ink text-bg border-ink' : 'border-line hover:border-accent')}, c.n))),
-    h('div', {className:'bg-surface border border-line rounded-md p-5 lg:p-6 flex flex-col gap-4 min-w-0', 'aria-live':'polite'},
-      h('div', {className:'flex flex-wrap items-baseline justify-between gap-3'}, h('h3', {className:'font-display font-bold text-lg'}, d.n), h(Pg, {p:d.p})),
-      h('dl', {className:'grid sm:grid-cols-[130px_minmax(0,1fr)] gap-x-4 gap-y-3 text-[15px] leading-relaxed m-0'},
-        row('Why difficult', d.why), row('Cues', d.cue), row('Strategy', d.str), row('Potential errors', d.err), row('Design idea', d.idea, true))));
+  const [i, setI] = useState(0), X = EXPLORER, d = X.items[i];
+  return e('section', null,
+    e('h2', null, X.title), e('p', {className:'lede'}, X.intro, ' ', e(Ref, {p:X.ref})),
+    e('div', {className:'explorer'},
+      e('div', {className:'tabs', role:'group', 'aria-label':X.title}, X.items.map((c, j) => e('button', {key:j, id:'pick-'+j, type:'button', 'aria-pressed':i === j, onClick:() => setI(j)}, c[X.name]))),
+      e('div', {className:'card', 'aria-live':'polite'},
+        e('div', {className:'card-top'}, e('h3', null, d[X.name]), e(Ref, {p:d[X.ref_key]})),
+        e('dl', null, X.fields.map(f => [e('dt', {key:f[0]+'t'}, f[1]), e('dd', {key:f[0]+'d', className:f[2] ? 'em' : ''}, d[f[0]])])))));
 }
 function Checklist(){
-  const KEY = 'agius2025-read';
-  const [done, setDone] = useState(() => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch(e) { return {}; } });
-  const toggle = id => setDone(prev => { const n = Object.assign({}, prev, {[id]: !prev[id]}); try { localStorage.setItem(KEY, JSON.stringify(n)); } catch(e) {} return n; });
-  return h('div', {className:'flex flex-col gap-4'},
-    h('div', {className:'flex flex-wrap items-baseline justify-between gap-3'}, h('h2', {className:'font-display font-bold text-3xl'}, 'Now read it yourself'), h('span', {className:'font-mono text-xs text-muted'}, READING.filter(r => done[r[0]]).length + ' of ' + READING.length + ' read')),
-    h('p', {className:'max-w-prose text-[17px] leading-relaxed'}, 'This page is a map. In this order the paper takes about an hour, and the first three items carry most of its value. Ticks are saved in this browser only.'),
-    h('div', {className:'border-t-2 border-ink'}, READING.map(r => h('label', {key:r[0], className:'grid grid-cols-[24px_minmax(0,1fr)_auto] gap-3 items-start py-3 border-b border-line cursor-pointer'},
-      h('input', {type:'checkbox', id:r[0], checked:!!done[r[0]], onChange:() => toggle(r[0]), className:'mt-1.5 w-[18px] h-[18px]', style:{accentColor:'var(--accent)'}}),
-      h('span', null, h('b', {className:'font-display ' + (done[r[0]] ? 'line-through' : '')}, r[1]), h('span', {className:'block text-sm text-muted leading-snug'}, r[2])),
-      h(Pg, {p:r[3]})))));
+  const KEY = 'lit-scrolly-read-' + PAPER.key, items = READING.items;
+  const [done, setDone] = useState(() => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (err) { return {}; } });
+  const toggle = k => setDone(prev => { const n = Object.assign({}, prev, {[k]: !prev[k]}); try { localStorage.setItem(KEY, JSON.stringify(n)); } catch (err) {} return n; });
+  const count = items.filter((r, j) => done['r'+j]).length;
+  return e('section', null,
+    e('div', {className:'read-top'}, e('h2', null, 'Now read it yourself'), e('span', {className:'mono'}, count + ' of ' + items.length + ' read')),
+    e('div', {className:'meter'}, e('i', {style:{width:(count/items.length*100)+'%'}})),
+    e('p', {className:'lede'}, READING.intro, ' Ticks are saved in this browser only.'),
+    e('div', {className:'todo'}, items.map((r, j) => e('label', {key:j, className:done['r'+j] ? 'done' : ''},
+      e('input', {type:'checkbox', id:'read-'+j, checked:!!done['r'+j], onChange:() => toggle('r'+j)}),
+      e('span', null, e('b', null, r[0]), e('span', {className:'why'}, r[1])),
+      e(Ref, {p:r[2]})))));
 }
 function App(){
   const [active, setActive] = useState(0);
-  const facts = [['16','nurse interviews'],['6 h','of observation, 55 triage sessions'],['26','themes coded'],['10','cognitive demands in the final table'],['0','systems built or evaluated']];
-  return h('div', {className:'font-sans'},
-    h('header', {className:'max-w-6xl mx-auto px-5 pt-12 pb-10 flex flex-col gap-5'},
-      h('p', {className:'font-mono text-[11px] uppercase tracking-widest text-muted'}, 'Reading companion · ' + PAPER.venue),
-      h('h1', {className:'font-display font-extrabold text-3xl sm:text-5xl leading-[1.08] max-w-4xl'}, PAPER.title),
-      h('p', {className:'text-muted'}, PAPER.authors + ' · ', h('a', {href:'https://doi.org/'+PAPER.doi, className:'text-accent underline'}, 'doi:'+PAPER.doi), ' · open access'),
-      h('p', {className:'max-w-prose text-lg leading-relaxed'}, 'The authors interviewed and watched emergency triage nurses in one Maltese hospital to learn how they decide under time pressure. They turned what they found into a table of ten cognitive demands, each paired with an idea for a decision support feature. They did not build or test a system.'),
-      h('dl', {className:'grid grid-cols-2 sm:grid-cols-5 border-t-2 border-ink border-b border-b-line m-0'}, facts.map(f => h('div', {key:f[1], className:'py-3 pr-3'}, h('dt', {className:'font-display font-extrabold text-3xl tabular-nums leading-none'}, f[0]), h('dd', {className:'m-0 mt-1 text-sm text-muted leading-snug'}, f[1])))),
-      h('p', {className:'max-w-prose text-sm text-muted'}, 'Written by Claude from the full PDF as a map for your own reading. Boxed numbers such as ', h(Pg, {p:'p. 1035'}), ' are the journal’s page numbers. Quotation marks mean text copied from the paper. Scroll to start.')),
-    h('div', {className:'max-w-6xl mx-auto px-5 grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10'},
-      h(Story, {active, setActive}), h(Stage, {active})),
-    h('nav', {'aria-label':'Story sections', className:'hidden lg:flex fixed right-4 top-1/2 -translate-y-1/2 flex-col gap-2 z-20'}, SECTIONS.map((s,i) =>
-      h('a', {key:s.id, href:'#'+s.id, title:s.title, 'aria-label':s.title, className:'block w-2.5 h-2.5 rounded-full border ' + (active===i ? 'bg-accent border-accent' : 'border-muted')}))),
-    h('main', {className:'max-w-6xl mx-auto px-5 pt-16 pb-24 flex flex-col gap-20'},
-      h('section', {className:'flex flex-col gap-5'},
-        h('h2', {className:'font-display font-bold text-3xl'}, 'The cognitive demands table'),
-        h('p', {className:'max-w-prose text-[17px] leading-relaxed'}, 'Pick a demand to see its row. The wording is condensed from the table. ', h(Pg, {p:'p. 1031–1033'})),
-        h(Explorer)),
-      h('section', {className:'flex flex-col gap-6'},
-        h('h2', {className:'font-display font-bold text-3xl'}, 'How far to trust it'),
-        h('div', {className:'grid md:grid-cols-2 gap-10'},
-          h('div', {className:'flex flex-col gap-3 min-w-0'}, h('h3', {className:'font-display font-bold'}, 'Limits the authors state ', h(Pg, {p:'p. 1042'})),
-            h('ul', {className:'list-disc pl-5 flex flex-col gap-2 leading-relaxed'}, TRUST.authors.map((t,i) => h('li', {key:i}, t)))),
-          h('div', {className:'flex flex-col gap-3 min-w-0'}, h('h3', {className:'font-display font-bold'}, 'What I noticed ', h(Tag, null, 'Claude’s reading')),
-            h('ul', {className:'list-disc pl-5 flex flex-col gap-2 leading-relaxed'}, TRUST.claude.map((t,i) => h('li', {key:i}, t[0], ' ', h(Pg, {p:t[1]}))))))),
-      h('section', {className:'flex flex-col gap-5'},
-        h('h2', {className:'font-display font-bold text-3xl'}, 'What it offers your thesis ', h(Tag, null, 'Claude’s suggestions')),
-        h('p', {className:'max-w-prose text-[17px] leading-relaxed'}, 'These are my connections to your Talent Manager study, not claims the paper makes. Keep or discard them.'),
-        h('div', {className:'overflow-x-auto'}, h('table', {className:'w-full border-collapse text-[15px] leading-relaxed'},
-          h('thead', null, h('tr', null, ['In the paper','Possible use for you'].map(t => h('th', {key:t, className:'text-left font-mono text-[11px] uppercase tracking-wider text-muted font-medium pb-2 pr-4 border-b-2 border-ink'}, t)))),
-          h('tbody', null, THESIS.map((r,i) => h('tr', {key:i}, h('td', {className:'py-2.5 pr-4 border-b border-line align-top'}, r[0], ' ', h(Pg, {p:r[1]})), h('td', {className:'py-2.5 pr-4 border-b border-line align-top'}, r[2]))))))),
-      h('section', null, h(Checklist))));
+  useEffect(() => {
+    document.title = PAPER.short;
+    const bar = document.querySelector('#progress i');
+    const on = () => { const h = document.documentElement, m = h.scrollHeight - h.clientHeight; bar.style.transform = 'scaleX(' + (m > 0 ? h.scrollTop / m : 0) + ')'; };
+    window.addEventListener('scroll', on, {passive:true}); on();
+    return () => window.removeEventListener('scroll', on);
+  }, []);
+  return e(React.Fragment, null,
+    e('header', {className:'wrap hero'},
+      e('p', {className:'mono'}, 'Reading companion · ' + PAPER.venue),
+      e('h1', null, PAPER.title),
+      e('p', {className:'by'}, PAPER.authors, PAPER.doi ? e(React.Fragment, null, ' · ', e('a', {href:'https://doi.org/' + PAPER.doi}, 'doi:' + PAPER.doi)) : null, PAPER.access ? ' · ' + PAPER.access : ''),
+      e('p', {className:'sum'}, PAPER.summary),
+      e('dl', {className:'facts'}, PAPER.facts.map(f => e('div', {key:f[1]}, e('dt', null, f[0]), e('dd', null, f[1])))),
+      e('div', {className:'howto'},
+        e('p', null, e('b', null, 'References'), 'Each one, like ', e(Ref, {p:PAPER.refExample}), ', gives the printed page, the column, and the line counted from the top of that column. Click one to copy it. Tables are cited by page.'),
+        e('p', null, e('b', null, 'Quotes'), 'Text in quotation marks is copied from the PDF. Everything else is a paraphrase to check against the lines cited.'),
+        e('p', null, e('b', null, 'Whose voice'), 'Written by Claude from the full text as a map for your own reading. Its own analysis is tagged, like ', e(Tag, null, 'Claude’s reading'), '.'))),
+    e('div', {className:'wrap scrolly'}, e(Story, {active, setActive}), e(Stage, {active})),
+    e('nav', {className:'rail', 'aria-label':'Story sections'}, SECTIONS.map((s, i) => e('a', {key:s.id, href:'#' + s.id, title:s.title, 'aria-label':s.title, className:active === i ? 'on' : ''}))),
+    e('main', {className:'wrap after'},
+      EXPLORER ? e(Explorer) : null,
+      e('section', null, e('h2', null, 'How far to trust it'),
+        e('div', {className:'two'},
+          e('div', null, e('h3', null, 'Limits the authors state ', e(Ref, {p:TRUST.authorsRef})), e('ul', {className:'list'}, TRUST.authors.map((t, i) => e('li', {key:i}, t)))),
+          e('div', null, e('h3', null, 'What I noticed ', e(Tag, null, 'Claude’s reading')), e('ul', {className:'list'}, TRUST.claude.map((t, i) => e('li', {key:i}, t[0], ' ', e(Ref, {p:t[1]}))))))),
+      e('section', null, e('h2', null, 'What it offers your thesis ', e(Tag, null, 'Claude’s suggestions')), e('p', {className:'lede'}, THESIS.intro),
+        e('div', {className:'scroll-x'}, e('table', null,
+          e('thead', null, e('tr', null, e('th', null, 'In the paper'), e('th', null, 'Possible use for you'))),
+          e('tbody', null, THESIS.rows.map((r, i) => e('tr', {key:i}, e('td', null, r[0], ' ', e(Ref, {p:r[1]})), e('td', null, r[2]))))))),
+      e(Checklist),
+      e('p', {className:'foot'}, PAPER.cite + ' · ' + PAPER.venue)));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
 </script>
 </body>
 </html>

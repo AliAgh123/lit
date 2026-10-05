@@ -1,10 +1,10 @@
 # Phrase bank
 
-Starter set plus the ENG 202 (LAU) course material. Replace or extend with your own terms; drafts written with `/lit write` draw on this file.
+Starter set. Replace or extend with your own terms; drafts written with `/lit write` draw on this file.
 
 The phrase follows the relation, never the other way round: decide from the matrix whether two sources agree or conflict, then pick the wording.
 
-Sources for the added phrases: the ENG 202 metadiscourse handouts in `Thesis research/techniques/eng202LAU/` (module A literature review, module B critical analysis; largely taken from the Manchester Academic Phrasebank) and the George Mason Writing Center handouts on hedging and informality in `module  A/Academic Language/`. X, Y and Z stand for your own terms.
+X, Y and Z stand for your own terms.
 
 ## Synthesis
 
@@ -18,7 +18,7 @@ Sources for the added phrases: the ENG 202 metadiscourse handouts in `Thesis res
 | Cause | consequently; as a result; this accounts for |
 | Addition (same direction) | moreover; furthermore; also |
 
-Transition check (ENG 202, Using Appropriate Words): "on the other hand" and "in contrast" need a real contrast with the previous sentence; to add a supporting point use "moreover" or "furthermore". "On the contrary" denies the claim or expectation just stated; it is not a synonym for "in contrast".
+Transition check: "on the other hand" and "in contrast" need a real contrast with the previous sentence; to add a supporting point use "moreover" or "furthermore". "On the contrary" denies the claim or expectation just stated; it is not a synonym for "in contrast".
 
 ## Reporting
 
@@ -32,7 +32,7 @@ Transition check (ENG 202, Using Appropriate Words): "on the other hand" and "in
 | What a text does | identifies; outlines; highlights; draws on; draws attention to; discusses; defines; traces; lists; considers whether |
 | Collective findings | several studies have found / reported / shown that / indicated that / linked X with Y / confirmed / revealed a correlation between |
 
-Tense (ENG 202, Referring to Sources): present perfect for the literature in general ("several studies have examined"); simple past for one dated study ("Smith (2012) found"); present tense for ideas that still hold ("Smith argues").
+Tense: present perfect for the literature in general ("several studies have examined"); simple past for one dated study ("Smith (2012) found"); present tense for ideas that still hold ("Smith argues").
 
 ## Opening: why the topic matters
 
@@ -248,7 +248,7 @@ Match the hedge to the evidence in the note; an abstract-only source cannot carr
 | big | substantial; significant |
 | good / bad | positive; considerable / negative |
 | thing; stuff | the specific noun |
-| people | participants; experts; recruiters; the specific group |
+| people | participants; experts; the specific group |
 | sort of | rather; somewhat |
 | like | such as; for example |
 | very; really; so | omit, or use a stronger word |
@@ -256,7 +256,7 @@ Match the hedge to the evidence in the note; an abstract-only source cannot carr
 | not many; not any | few; no |
 | don't; isn't; can't | do not; is not; cannot |
 
-Sentence habits from the same handouts:
+Sentence habits:
 
 - Follow "this" or "these" with a summary noun: "This understanding can help", not "This can help".
 - Cut an opening "There is / There are" where the sentence survives without it.
